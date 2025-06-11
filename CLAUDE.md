@@ -33,3 +33,39 @@ To use this template:
 2. Add model URLs to the appropriate model arrays
 3. Set environment variables `HF_TOKEN` and/or `CIVITAI_TOKEN` if downloading from authenticated sources
 4. The script will run automatically on container start unless disabled
+
+## GUI Tool
+
+A GUI application (`provisioning_gui.py`) is provided to simplify creating provisioning scripts:
+
+### Status: ✅ Fixed
+- Fixed KeyError with WORKSPACE bash variable by properly escaping template strings
+- Fixed AttributeError by adding initialization guard in update_preview method
+- GUI now launches successfully and functions as intended
+
+### Features:
+- Visual interface for managing all provisioning arrays
+- Add/remove URLs and packages with ease
+- Paste multiple URLs at once
+- Preview generated script in real-time
+- Save scripts to file
+- Upload directly to Git repository
+
+### Usage:
+```bash
+# Install dependencies
+pip install PySide6
+
+# Run the GUI
+python provisioning_gui.py
+```
+
+### GUI Workflow:
+1. Launch the GUI application
+2. Use tabs to navigate between different model categories
+3. Paste or type URLs/packages in the input area
+4. Click "Add" to include them in the script
+5. Preview the generated script on the right
+6. Save to file or upload directly to Git
+
+The GUI automatically loads `default.sh` on startup if present, allowing you to edit existing provisioning scripts.

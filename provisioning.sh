@@ -6,23 +6,22 @@ COMFYUI_DIR=${WORKSPACE}/ComfyUI
 # Packages are installed after nodes so we can fix them...
 
 APT_PACKAGES=(
-    #"package-1"
-    #"package-2"
+
 )
 
 PIP_PACKAGES=(
-    #"package-1"
-    #"package-2"
+
 )
 
 NODES=(
-    # "https://github.com/ltdrdata/ComfyUI-Manager"
-    # "https://github.com/cubiq/ComfyUI_essentials"
+    "https://github.com/ltdrdata/ComfyUI-Manager"
+    "https://github.com/cubiq/ComfyUI_essentials"
     "https://github.com/AIrjen/OneButtonPrompt"
     "https://github.com/yolain/ComfyUI-Easy-Use"
     "https://github.com/rgthree/rgthree-comfy"
     "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
     "https://github.com/SeargeDP/SeargeSDXL"
+    "https://github.com/lgldlk/ComfyUI-PC-ding-dong"
 )
 
 WORKFLOWS=(
@@ -31,11 +30,10 @@ WORKFLOWS=(
 
 CHECKPOINT_MODELS=(
     "https://civitai.com/api/download/models/798204?type=Model&format=SafeTensor&size=full&fp=fp16"
-    "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors"
-    "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors"
 )
 
 UNET_MODELS=(
+
 )
 
 LORA_MODELS=(
@@ -47,6 +45,7 @@ VAE_MODELS=(
 )
 
 ESRGAN_MODELS=(
+
 )
 
 UPSCALE_MODELS=(
