@@ -58,11 +58,11 @@ CLIP_VISION_MODELS=(
 )
 
 TEXT_ENCODER_MODELS=(
-{text_encoder_models}
+
 )
 
 DIFFUSION_MODELS=(
-{diffusion_models}
+
 )
 
 

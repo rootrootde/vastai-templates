@@ -581,7 +581,9 @@ class ProvisioningGUI(QMainWindow):
             '{upscale_models}': format_array(self.data.get('upscale_models', [])),
             '{controlnet_models}': format_array(self.data.get('controlnet_models', [])),
             '{annotator_models}': format_array(self.data.get('annotator_models', [])),
-            '{clip_vision_models}': format_array(self.data.get('clip_vision_models', []))
+            '{clip_vision_models}': format_array(self.data.get('clip_vision_models', [])),
+            '{text_encoder_models}': format_array(self.data.get('text_encoder_models', [])),
+            '{diffusion_models}': format_array(self.data.get('diffusion_models', []))
         }
         
         # Apply replacements
@@ -592,9 +594,9 @@ class ProvisioningGUI(QMainWindow):
         return formatted_script
         
     def load_default_script(self):
-        """Load the existing default.sh script"""
+        """Load the existing provisioning.sh script"""
         try:
-            with open('default.sh', 'r') as f:
+            with open('provisioning.sh', 'r') as f:
                 content = f.read()
                 self.parse_script(content)
         except FileNotFoundError:
@@ -625,7 +627,9 @@ class ProvisioningGUI(QMainWindow):
             'upscale_models': r'UPSCALE_MODELS=\((.*?)\)',
             'controlnet_models': r'CONTROLNET_MODELS=\((.*?)\)',
             'annotator_models': r'ANNOTATOR_MODELS=\((.*?)\)',
-            'clip_vision_models': r'CLIP_VISION_MODELS=\((.*?)\)'
+            'clip_vision_models': r'CLIP_VISION_MODELS=\((.*?)\)',
+            'text_encoder_models': r'TEXT_ENCODER_MODELS=\((.*?)\)',
+            'diffusion_models': r'DIFFUSION_MODELS=\((.*?)\)'
         }
         
         # Extract items from each array
