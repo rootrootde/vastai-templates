@@ -14,12 +14,7 @@ PIP_PACKAGES=(
 )
 
 NODES=(
-    "https://github.com/AIrjen/OneButtonPrompt"
-    "https://github.com/yolain/ComfyUI-Easy-Use"
-    "https://github.com/rgthree/rgthree-comfy"
-    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
-    "https://github.com/SeargeDP/SeargeSDXL"
-    "https://github.com/lgldlk/ComfyUI-PC-ding-dong"
+
 )
 
 WORKFLOWS=(
@@ -27,7 +22,7 @@ WORKFLOWS=(
 )
 
 CHECKPOINT_MODELS=(
-    "https://civitai.com/api/download/models/1759168"
+
 )
 
 UNET_MODELS=(
@@ -39,7 +34,7 @@ LORA_MODELS=(
 )
 
 VAE_MODELS=(
-    "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors"
+    "https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors"
 )
 
 ESRGAN_MODELS=(
@@ -47,26 +42,27 @@ ESRGAN_MODELS=(
 )
 
 UPSCALE_MODELS=(
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth"
+
 )
 
 CONTROLNET_MODELS=(
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
+
 )
 
 ANNOTATOR_MODELS=(
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth"
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
+
 )
 
 CLIP_VISION_MODELS=(
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
+
+)
+
+TEXT_ENCODER_MODELS=(
+{text_encoder_models}
+)
+
+DIFFUSION_MODELS=(
+{diffusion_models}
 )
 
 
@@ -85,6 +81,8 @@ function provisioning_start() {
     provisioning_get_files "${COMFYUI_DIR}/models/upscale_models" "${UPSCALE_MODELS[@]}"
     provisioning_get_files "${COMFYUI_DIR}/models/annotators" "${ANNOTATOR_MODELS[@]}"
     provisioning_get_files "${COMFYUI_DIR}/models/clip_vision" "${CLIP_VISION_MODELS[@]}"
+    provisioning_get_files "${COMFYUI_DIR}/models/text_encoders" "${TEXT_ENCODER_MODELS[@]}"
+    provisioning_get_files "${COMFYUI_DIR}/models/diffusion_models" "${DIFFUSION_MODELS[@]}"
     provisioning_print_end
 }
 

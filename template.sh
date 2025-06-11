@@ -57,6 +57,14 @@ CLIP_VISION_MODELS=(
 {clip_vision_models}
 )
 
+TEXT_ENCODER_MODELS=(
+{text_encoder_models}
+)
+
+DIFFUSION_MODELS=(
+{diffusion_models}
+)
+
 
 function provisioning_start() {
     provisioning_print_header
@@ -73,6 +81,8 @@ function provisioning_start() {
     provisioning_get_files "${COMFYUI_DIR}/models/upscale_models" "${UPSCALE_MODELS[@]}"
     provisioning_get_files "${COMFYUI_DIR}/models/annotators" "${ANNOTATOR_MODELS[@]}"
     provisioning_get_files "${COMFYUI_DIR}/models/clip_vision" "${CLIP_VISION_MODELS[@]}"
+    provisioning_get_files "${COMFYUI_DIR}/models/text_encoders" "${TEXT_ENCODER_MODELS[@]}"
+    provisioning_get_files "${COMFYUI_DIR}/models/diffusion_models" "${DIFFUSION_MODELS[@]}"
     provisioning_print_end
 }
 

@@ -53,7 +53,9 @@ class SearchWorker(QThread):
             "vae_models": "VAE",
             "controlnet_models": "ControlNet",
             "upscale_models": "Upscaler",
-            "workflows": "Workflows"
+            "workflows": "Workflows",
+            "text_encoder_models": "TextualInversion",
+            "diffusion_models": "Checkpoint"
         }
         
         if self.model_type in type_mapping:
@@ -189,7 +191,8 @@ class ModelSearchDialog(QWidget):
         self.type_combo = QComboBox()
         self.type_combo.addItems([
             "All Types", "Checkpoints", "LoRA", "VAE", 
-            "ControlNet", "Upscale Models", "Workflows"
+            "ControlNet", "Upscale Models", "Workflows",
+            "Text Encoders", "Diffusion Models"
         ])
         search_layout.addWidget(QLabel("Type:"))
         search_layout.addWidget(self.type_combo)
@@ -258,7 +261,9 @@ class ModelSearchDialog(QWidget):
             "VAE": "vae_models",
             "ControlNet": "controlnet_models",
             "Upscale Models": "upscale_models",
-            "Workflows": "workflows"
+            "Workflows": "workflows",
+            "Text Encoders": "text_encoder_models",
+            "Diffusion Models": "diffusion_models"
         }
         return type_mapping.get(type_text, "")
         
@@ -346,7 +351,9 @@ class ProvisioningGUI(QMainWindow):
             'upscale_models': [],
             'controlnet_models': [],
             'annotator_models': [],
-            'clip_vision_models': []
+            'clip_vision_models': [],
+            'text_encoder_models': [],
+            'diffusion_models': []
         }
         
         self.setup_ui()
@@ -400,6 +407,8 @@ class ProvisioningGUI(QMainWindow):
         self.create_category_tab("ControlNet", "controlnet_models")
         self.create_category_tab("Annotators", "annotator_models")
         self.create_category_tab("CLIP Vision", "clip_vision_models")
+        self.create_category_tab("Text Encoders", "text_encoder_models")
+        self.create_category_tab("Diffusion Models", "diffusion_models")
         
         splitter.addWidget(self.tabs)
         
