@@ -353,7 +353,8 @@ class ProvisioningGUI(QMainWindow):
             'annotator_models': [],
             'clip_vision_models': [],
             'text_encoder_models': [],
-            'diffusion_models': []
+            'diffusion_models': [],
+            'max_parallel_downloads': 4
         }
         
         self.setup_ui()
@@ -409,6 +410,7 @@ class ProvisioningGUI(QMainWindow):
         self.create_category_tab("CLIP Vision", "clip_vision_models")
         self.create_category_tab("Text Encoders", "text_encoder_models")
         self.create_category_tab("Diffusion Models", "diffusion_models")
+        self.create_settings_tab()
         
         splitter.addWidget(self.tabs)
         
@@ -490,6 +492,52 @@ class ProvisioningGUI(QMainWindow):
         setattr(self, f"{key}_input", text_input)
         
         self.tabs.addTab(tab, name)
+    
+    def create_settings_tab(self):
+        """Create a settings tab for configuration options"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        
+        # Instructions
+        layout.addWidget(QLabel("Configure provisioning script settings"))
+        
+        # Parallel downloads setting
+        parallel_group = QGroupBox("Download Settings")
+        parallel_layout = QVBoxLayout(parallel_group)
+        
+        parallel_label = QLabel("Maximum Parallel Downloads:")
+        parallel_layout.addWidget(parallel_label)
+        
+        parallel_input_layout = QHBoxLayout()
+        self.parallel_input = QLineEdit()
+        self.parallel_input.setText(str(self.data.get('max_parallel_downloads', 4)))
+        self.parallel_input.setMaximumWidth(100)
+        self.parallel_input.setPlaceholderText("4")
+        self.parallel_input.textChanged.connect(self.update_parallel_downloads)
+        parallel_input_layout.addWidget(self.parallel_input)
+        
+        parallel_help = QLabel("(Set to 1 to disable parallel downloading)")
+        parallel_help.setStyleSheet("color: gray; font-size: 10px;")
+        parallel_input_layout.addWidget(parallel_help)
+        parallel_input_layout.addStretch()
+        
+        parallel_layout.addLayout(parallel_input_layout)
+        layout.addWidget(parallel_group)
+        
+        layout.addStretch()
+        
+        self.tabs.addTab(tab, "Settings")
+    
+    def update_parallel_downloads(self):
+        """Update the max parallel downloads setting"""
+        try:
+            value = int(self.parallel_input.text())
+            if value >= 1:
+                self.data['max_parallel_downloads'] = value
+                self.update_preview()
+        except ValueError:
+            # Invalid input, ignore
+            pass
         
     def add_items(self, key, text_input):
         text = text_input.toPlainText().strip()
@@ -583,7 +631,8 @@ class ProvisioningGUI(QMainWindow):
             '{annotator_models}': format_array(self.data.get('annotator_models', [])),
             '{clip_vision_models}': format_array(self.data.get('clip_vision_models', [])),
             '{text_encoder_models}': format_array(self.data.get('text_encoder_models', [])),
-            '{diffusion_models}': format_array(self.data.get('diffusion_models', []))
+            '{diffusion_models}': format_array(self.data.get('diffusion_models', [])),
+            '{max_parallel_downloads}': str(self.data.get('max_parallel_downloads', 4))
         }
         
         # Apply replacements
@@ -603,15 +652,18 @@ class ProvisioningGUI(QMainWindow):
             pass
             
     def parse_script(self, content):
-        """Parse a bash script to extract arrays"""
+        """Parse a bash script to extract arrays and settings"""
         import re
         
         # Clear existing data
         for key in self.data:
-            self.data[key] = []
-            list_widget = getattr(self, f"{key}_list", None)
-            if list_widget:
-                list_widget.clear()
+            if key == 'max_parallel_downloads':
+                self.data[key] = 4  # Reset to default
+            else:
+                self.data[key] = []
+                list_widget = getattr(self, f"{key}_list", None)
+                if list_widget:
+                    list_widget.clear()
         
         # Define patterns for each array
         patterns = {
@@ -646,6 +698,19 @@ class ProvisioningGUI(QMainWindow):
                 if list_widget:
                     for item in items:
                         list_widget.addItem(item)
+        
+        # Parse MAX_PARALLEL_DOWNLOADS setting
+        max_parallel_match = re.search(r'MAX_PARALLEL_DOWNLOADS=(\d+)', content)
+        if max_parallel_match:
+            try:
+                max_parallel_value = int(max_parallel_match.group(1))
+                self.data['max_parallel_downloads'] = max_parallel_value
+                # Update UI if the input field exists
+                if hasattr(self, 'parallel_input'):
+                    self.parallel_input.setText(str(max_parallel_value))
+            except ValueError:
+                # If parsing fails, keep default value
+                pass
         
         self.update_preview()
         

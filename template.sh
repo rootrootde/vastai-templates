@@ -3,6 +3,9 @@
 source /venv/main/bin/activate
 COMFYUI_DIR=${WORKSPACE}/ComfyUI
 
+# Configure parallel downloads (set to 1 to disable parallel downloading)
+MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-{max_parallel_downloads}}
+
 # Packages are installed after nodes so we can fix them...
 
 APT_PACKAGES=(
@@ -144,11 +147,55 @@ function provisioning_get_files() {
     shift
     arr=("$@")
     printf "Downloading %s model(s) to %s...\\n" "${#arr[@]}" "$dir"
-    for url in "${arr[@]}"; do
-        printf "Downloading: %s\\n" "${url}"
-        provisioning_download "${url}" "${dir}"
+    
+    if [[ $MAX_PARALLEL_DOWNLOADS -le 1 ]]; then
+        # Sequential downloads (original behavior)
+        for url in "${arr[@]}"; do
+            printf "Downloading: %s\\n" "${url}"
+            provisioning_download "${url}" "${dir}"
+            printf "\\n"
+        done
+    else
+        # Parallel downloads
+        local pids=()
+        local active_downloads=0
+        local download_count=0
+        local total_downloads=${#arr[@]}
+        
+        for url in "${arr[@]}"; do
+            # Wait if we've reached the max parallel downloads
+            while [[ $active_downloads -ge $MAX_PARALLEL_DOWNLOADS ]]; do
+                # Check for completed downloads
+                for i in "${!pids[@]}"; do
+                    if ! kill -0 "${pids[i]}" 2>/dev/null; then
+                        wait "${pids[i]}"
+                        unset pids[i]
+                        ((active_downloads--))
+                    fi
+                done
+                # Brief sleep to avoid busy waiting
+                sleep 0.1
+            done
+            
+            # Start download in background
+            ((download_count++))
+            printf "[%d/%d] Starting download: %s\\n" "$download_count" "$total_downloads" "${url}"
+            (
+                provisioning_download "${url}" "${dir}"
+                printf "[COMPLETED] %s\\n" "${url##*/}"
+            ) &
+            pids+=($!)
+            ((active_downloads++))
+        done
+        
+        # Wait for all remaining downloads to complete
+        printf "Waiting for %d remaining downloads to complete...\\n" "$active_downloads"
+        for pid in "${pids[@]}"; do
+            wait "$pid"
+        done
+        printf "All downloads completed for %s\\n" "$dir"
         printf "\\n"
-    done
+    fi
 }
 
 function provisioning_print_header() {
