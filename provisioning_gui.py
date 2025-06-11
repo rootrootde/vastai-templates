@@ -43,7 +43,7 @@ class SearchWorker(QThread):
         params = {
             "query": self.query,
             "limit": 20,
-            "sort": "Highest Rated"
+            "sort": "Most Downloaded"
         }
         
         # Map model types to CivitAI types
@@ -52,7 +52,8 @@ class SearchWorker(QThread):
             "lora_models": "LORA",
             "vae_models": "VAE",
             "controlnet_models": "ControlNet",
-            "upscale_models": "Upscaler"
+            "upscale_models": "Upscaler",
+            "workflows": "Workflows"
         }
         
         if self.model_type in type_mapping:
@@ -73,12 +74,19 @@ class SearchWorker(QThread):
             latest_version = versions[0]
             files = latest_version.get("files", [])
             
-            # Find primary file
+            # Find primary file or workflow file
             primary_file = None
             for file in files:
                 if file.get("primary", False):
                     primary_file = file
                     break
+            
+            # If no primary file, look for workflow files (.json)
+            if not primary_file and self.model_type == "workflows":
+                for file in files:
+                    if file.get("name", "").endswith(".json"):
+                        primary_file = file
+                        break
             
             if not primary_file:
                 continue
@@ -98,7 +106,9 @@ class SearchWorker(QThread):
                 "platform": "civitai",
                 "image_url": latest_version.get("images", [{}])[0].get("url") if latest_version.get("images") else None
             })
-            
+        
+        # Sort by download count (descending)
+        results.sort(key=lambda x: x.get('downloads', 0), reverse=True)
         return results
         
     def search_huggingface(self):
@@ -148,7 +158,9 @@ class SearchWorker(QThread):
                 "platform": "huggingface",
                 "last_modified": item.get("lastModified", "")
             })
-            
+        
+        # Sort by download count (descending)  
+        results.sort(key=lambda x: x.get('downloads', 0), reverse=True)
         return results
 
 
@@ -177,7 +189,7 @@ class ModelSearchDialog(QWidget):
         self.type_combo = QComboBox()
         self.type_combo.addItems([
             "All Types", "Checkpoints", "LoRA", "VAE", 
-            "ControlNet", "Upscale Models"
+            "ControlNet", "Upscale Models", "Workflows"
         ])
         search_layout.addWidget(QLabel("Type:"))
         search_layout.addWidget(self.type_combo)
@@ -245,7 +257,8 @@ class ModelSearchDialog(QWidget):
             "LoRA": "lora_models",
             "VAE": "vae_models",
             "ControlNet": "controlnet_models",
-            "Upscale Models": "upscale_models"
+            "Upscale Models": "upscale_models",
+            "Workflows": "workflows"
         }
         return type_mapping.get(type_text, "")
         
@@ -324,6 +337,7 @@ class ProvisioningGUI(QMainWindow):
             'apt_packages': [],
             'pip_packages': [],
             'nodes': [],
+            'workflows': [],
             'checkpoint_models': [],
             'unet_models': [],
             'lora_models': [],
@@ -376,6 +390,7 @@ class ProvisioningGUI(QMainWindow):
         self.create_category_tab("APT Packages", "apt_packages")
         self.create_category_tab("PIP Packages", "pip_packages")
         self.create_category_tab("ComfyUI Nodes", "nodes")
+        self.create_category_tab("Workflows", "workflows")
         self.create_category_tab("Checkpoints", "checkpoint_models")
         self.create_category_tab("UNET Models", "unet_models")
         self.create_category_tab("LoRA Models", "lora_models")
@@ -415,6 +430,8 @@ class ProvisioningGUI(QMainWindow):
             layout.addWidget(QLabel("Enter Python package names (one per line)"))
         elif key == "nodes":
             layout.addWidget(QLabel("Enter ComfyUI node GitHub URLs (one per line)"))
+        elif key == "workflows":
+            layout.addWidget(QLabel("Enter workflow URLs (one per line)"))
         else:
             layout.addWidget(QLabel(f"Enter {name} URLs (one per line)"))
         
@@ -443,9 +460,12 @@ class ProvisioningGUI(QMainWindow):
         # Buttons layout
         button_layout = QHBoxLayout()
         
-        # Search button (only for model categories)
+        # Search button (only for model categories and workflows)
         if key not in ['apt_packages', 'pip_packages', 'nodes']:
-            search_btn = QPushButton("Search Models")
+            if key == 'workflows':
+                search_btn = QPushButton("Search Workflows")
+            else:
+                search_btn = QPushButton("Search Models")
             search_btn.clicked.connect(lambda: self.open_search_dialog(key))
             button_layout.addWidget(search_btn)
         
@@ -524,210 +544,13 @@ class ProvisioningGUI(QMainWindow):
         self.preview_text.setPlainText(script)
         
     def generate_script(self):
-        template = '''#!/bin/bash
-
-source /venv/main/bin/activate
-COMFYUI_DIR=${{WORKSPACE}}/ComfyUI
-
-# Packages are installed after nodes so we can fix them...
-
-APT_PACKAGES=(
-{apt_packages}
-)
-
-PIP_PACKAGES=(
-{pip_packages}
-)
-
-NODES=(
-{nodes}
-)
-
-WORKFLOWS=(
-
-)
-
-CHECKPOINT_MODELS=(
-{checkpoint_models}
-)
-
-UNET_MODELS=(
-{unet_models}
-)
-
-LORA_MODELS=(
-{lora_models}
-)
-
-VAE_MODELS=(
-{vae_models}
-)
-
-ESRGAN_MODELS=(
-{esrgan_models}
-)
-
-UPSCALE_MODELS=(
-{upscale_models}
-)
-
-CONTROLNET_MODELS=(
-{controlnet_models}
-)
-
-ANNOTATOR_MODELS=(
-{annotator_models}
-)
-
-CLIP_VISION_MODELS=(
-{clip_vision_models}
-)
-
-
-function provisioning_start() {{
-    provisioning_print_header
-    provisioning_get_apt_packages
-    provisioning_get_nodes
-    provisioning_get_pip_packages
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/checkpoints" \\
-        "${{CHECKPOINT_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/unet" \\
-        "${{UNET_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/lora" \\
-        "${{LORA_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/controlnet" \\
-        "${{CONTROLNET_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/vae" \\
-        "${{VAE_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/esrgan" \\
-        "${{ESRGAN_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/upscale_models" \\
-        "${{UPSCALE_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/annotators" \\
-        "${{ANNOTATOR_MODELS[@]}}"
-    provisioning_get_files \\
-        "${{COMFYUI_DIR}}/models/clip_vision" \\
-        "${{CLIP_VISION_MODELS[@]}}"
-    provisioning_print_end
-}}
-
-function provisioning_get_apt_packages() {{
-    if [[ -n $APT_PACKAGES ]]; then
-            sudo $APT_INSTALL ${{APT_PACKAGES[@]}}
-    fi
-}}
-
-function provisioning_get_pip_packages() {{
-    if [[ -n $PIP_PACKAGES ]]; then
-            pip install --no-cache-dir ${{PIP_PACKAGES[@]}}
-    fi
-}}
-
-function provisioning_get_nodes() {{
-    for repo in "${{NODES[@]}}"; do
-        dir="${{repo##*/}}"
-        path="${{COMFYUI_DIR}}/custom_nodes/${{dir}}"
-        requirements="${{path}}/requirements.txt"
-        if [[ -d $path ]]; then
-            if [[ ${{AUTO_UPDATE,,}} != "false" ]]; then
-                printf "Updating node: %s...\\n" "${{repo}}"
-                ( cd "$path" && git pull )
-                if [[ -e $requirements ]]; then
-                   pip install --no-cache-dir -r "$requirements"
-                fi
-            fi
-        else
-            printf "Downloading node: %s...\\n" "${{repo}}"
-            git clone "${{repo}}" "${{path}}" --recursive
-            if [[ -e $requirements ]]; then
-                pip install --no-cache-dir -r "${{requirements}}"
-            fi
-        fi
-    done
-}}
-
-function provisioning_get_files() {{
-    if [[ -z $2 ]]; then return 1; fi
-    
-    dir="$1"
-    mkdir -p "$dir"
-    shift
-    arr=("$@")
-    printf "Downloading %s model(s) to %s...\\n" "${{#arr[@]}}" "$dir"
-    for url in "${{arr[@]}}"; do
-        printf "Downloading: %s\\n" "${{url}}"
-        provisioning_download "${{url}}" "${{dir}}"
-        printf "\\n"
-    done
-}}
-
-function provisioning_print_header() {{
-    printf "\\n##############################################\\n#                                            #\\n#          Provisioning container            #\\n#                                            #\\n#         This will take some time           #\\n#                                            #\\n# Your container will be ready on completion #\\n#                                            #\\n##############################################\\n\\n"
-}}
-
-function provisioning_print_end() {{
-    printf "\\nProvisioning complete:  Application will start now\\n\\n"
-}}
-
-function provisioning_has_valid_hf_token() {{
-    [[ -n "$HF_TOKEN" ]] || return 1
-    url="https://huggingface.co/api/whoami-v2"
-
-    response=$(curl -o /dev/null -s -w "%{{http_code}}" -X GET "$url" \\
-        -H "Authorization: Bearer $HF_TOKEN" \\
-        -H "Content-Type: application/json")
-
-    # Check if the token is valid
-    if [ "$response" -eq 200 ]; then
-        return 0
-    else
-        return 1
-    fi
-}}
-
-function provisioning_has_valid_civitai_token() {{
-    [[ -n "$CIVITAI_TOKEN" ]] || return 1
-    url="https://civitai.com/api/v1/models?hidden=1&limit=1"
-
-    response=$(curl -o /dev/null -s -w "%{{http_code}}" -X GET "$url" \\
-        -H "Authorization: Bearer $CIVITAI_TOKEN" \\
-        -H "Content-Type: application/json")
-
-    # Check if the token is valid
-    if [ "$response" -eq 200 ]; then
-        return 0
-    else
-        return 1
-    fi
-}}
-
-# Download from $1 URL to $2 file path
-function provisioning_download() {{
-    if [[ -n $HF_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\\.)?huggingface\\.co(/|$|\\?) ]]; then
-        auth_token="$HF_TOKEN"
-    elif 
-        [[ -n $CIVITAI_TOKEN && $1 =~ ^https://([a-zA-Z0-9_-]+\\.)?civitai\\.com(/|$|\\?) ]]; then
-        auth_token="$CIVITAI_TOKEN"
-    fi
-    if [[ -n $auth_token ]];then
-        wget --header="Authorization: Bearer $auth_token" -qnc --content-disposition --show-progress -e dotbytes="${{3:-4M}}" -P "$2" "$1"
-    else
-        wget -qnc --content-disposition --show-progress -e dotbytes="${{3:-4M}}" -P "$2" "$1"
-    fi
-}}
-
-# Allow user to disable provisioning if they started with a script they didn't want
-if [[ ! -f /.noprovisioning ]]; then
-    provisioning_start
-fi'''
+        # Load template from file
+        try:
+            with open('template.sh', 'r') as f:
+                template = f.read()
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error", "Template file 'template.sh' not found!")
+            return ""
         
         # Format the arrays
         def format_array(items):
@@ -735,21 +558,27 @@ fi'''
                 return ""
             return '\n'.join(f'    "{item}"' for item in items)
         
-        # Fill in the template
-        formatted_script = template.format(
-            apt_packages=format_array(self.data.get('apt_packages', [])),
-            pip_packages=format_array(self.data.get('pip_packages', [])),
-            nodes=format_array(self.data.get('nodes', [])),
-            checkpoint_models=format_array(self.data.get('checkpoint_models', [])),
-            unet_models=format_array(self.data.get('unet_models', [])),
-            lora_models=format_array(self.data.get('lora_models', [])),
-            vae_models=format_array(self.data.get('vae_models', [])),
-            esrgan_models=format_array(self.data.get('esrgan_models', [])),
-            upscale_models=format_array(self.data.get('upscale_models', [])),
-            controlnet_models=format_array(self.data.get('controlnet_models', [])),
-            annotator_models=format_array(self.data.get('annotator_models', [])),
-            clip_vision_models=format_array(self.data.get('clip_vision_models', []))
-        )
+        # Replace placeholders using string replacement
+        replacements = {
+            '{apt_packages}': format_array(self.data.get('apt_packages', [])),
+            '{pip_packages}': format_array(self.data.get('pip_packages', [])),
+            '{nodes}': format_array(self.data.get('nodes', [])),
+            '{workflows}': format_array(self.data.get('workflows', [])),
+            '{checkpoint_models}': format_array(self.data.get('checkpoint_models', [])),
+            '{unet_models}': format_array(self.data.get('unet_models', [])),
+            '{lora_models}': format_array(self.data.get('lora_models', [])),
+            '{vae_models}': format_array(self.data.get('vae_models', [])),
+            '{esrgan_models}': format_array(self.data.get('esrgan_models', [])),
+            '{upscale_models}': format_array(self.data.get('upscale_models', [])),
+            '{controlnet_models}': format_array(self.data.get('controlnet_models', [])),
+            '{annotator_models}': format_array(self.data.get('annotator_models', [])),
+            '{clip_vision_models}': format_array(self.data.get('clip_vision_models', []))
+        }
+        
+        # Apply replacements
+        formatted_script = template
+        for placeholder, value in replacements.items():
+            formatted_script = formatted_script.replace(placeholder, value)
         
         return formatted_script
         
@@ -778,6 +607,7 @@ fi'''
             'apt_packages': r'APT_PACKAGES=\((.*?)\)',
             'pip_packages': r'PIP_PACKAGES=\((.*?)\)',
             'nodes': r'NODES=\((.*?)\)',
+            'workflows': r'WORKFLOWS=\((.*?)\)',
             'checkpoint_models': r'CHECKPOINT_MODELS=\((.*?)\)',
             'unet_models': r'UNET_MODELS=\((.*?)\)',
             'lora_models': r'LORA_MODELS=\((.*?)\)',
