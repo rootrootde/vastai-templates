@@ -7,18 +7,13 @@ from PySide6.QtWidgets import (
     QTabWidget, QListWidget, QPushButton, QTextEdit, QLineEdit,
     QLabel, QFileDialog, QMessageBox, QSplitter, QGroupBox,
     QAbstractItemView, QProgressBar, QScrollArea, QFrame,
-    QComboBox, QCheckBox, QDialog, QFormLayout, QSpinBox,
-    QDialogButtonBox, QInputDialog
+    QComboBox, QCheckBox, QInputDialog
 )
-from PySide6.QtCore import Qt, QSize, QThread, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt, QThread, Signal
 import subprocess
-import json
 import requests
 import urllib.parse
 from datetime import datetime
-import base64
-import configparser
 
 class SearchWorker(QThread):
     results_ready = Signal(list)
@@ -318,304 +313,6 @@ class ModelSearchDialog(QWidget):
         QMessageBox.critical(self, "Search Error", f"Search failed: {error_msg}")
 
 
-class SettingsDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Settings")
-        self.setFixedSize(500, 400)
-        self.settings_file = Path.home() / ".vastai_provisioning_settings.ini"
-        self.setup_ui()
-        self.load_settings()
-        
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # GitHub Settings Group
-        github_group = QGroupBox("GitHub Settings")
-        github_layout = QFormLayout(github_group)
-        
-        # GitHub Token
-        self.token_input = QLineEdit()
-        self.token_input.setEchoMode(QLineEdit.Password)
-        self.token_input.setPlaceholderText("Enter your GitHub Personal Access Token")
-        github_layout.addRow("GitHub Token:", self.token_input)
-        
-        # Repository Owner
-        self.owner_input = QLineEdit()
-        self.owner_input.setPlaceholderText("e.g., your-username")
-        github_layout.addRow("Repository Owner:", self.owner_input)
-        
-        # Repository Name
-        self.repo_input = QLineEdit()
-        self.repo_input.setPlaceholderText("e.g., vastai-templates")
-        github_layout.addRow("Repository Name:", self.repo_input)
-        
-        # Branch
-        self.branch_input = QLineEdit()
-        self.branch_input.setText("main")
-        self.branch_input.setPlaceholderText("main")
-        github_layout.addRow("Branch:", self.branch_input)
-        
-        # Default Path
-        self.path_input = QLineEdit()
-        self.path_input.setPlaceholderText("e.g., templates/ (optional)")
-        github_layout.addRow("Upload Path:", self.path_input)
-        
-        layout.addWidget(github_group)
-        
-        # API Settings Group
-        api_group = QGroupBox("API Settings")
-        api_layout = QFormLayout(api_group)
-        
-        # Request timeout
-        self.timeout_spin = QSpinBox()
-        self.timeout_spin.setRange(5, 60)
-        self.timeout_spin.setValue(10)
-        self.timeout_spin.setSuffix(" seconds")
-        api_layout.addRow("Request Timeout:", self.timeout_spin)
-        
-        layout.addWidget(api_group)
-        
-        # Help text
-        help_text = QLabel(
-            "<b>GitHub Token Setup:</b><br>"
-            "1. Go to GitHub → Settings → Developer settings → Personal access tokens<br>"
-            "2. Generate a new token with 'repo' permissions<br>"
-            "3. Copy and paste the token above<br><br>"
-            "<b>Repository Format:</b><br>"
-            "Owner: your GitHub username or organization<br>"
-            "Name: the repository name (without .git)<br>"
-            "Upload Path: optional subfolder in the repository"
-        )
-        help_text.setWordWrap(True)
-        help_text.setStyleSheet("color: #666; font-size: 10px; padding: 10px;")
-        layout.addWidget(help_text)
-        
-        # Test connection button
-        test_btn = QPushButton("Test GitHub Connection")
-        test_btn.clicked.connect(self.test_connection)
-        layout.addWidget(test_btn)
-        
-        # Dialog buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            Qt.Horizontal, self
-        )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
-        
-    def load_settings(self):
-        """Load settings from file"""
-        if not self.settings_file.exists():
-            return
-            
-        config = configparser.ConfigParser()
-        config.read(self.settings_file)
-        
-        if 'github' in config:
-            github = config['github']
-            self.token_input.setText(github.get('token', ''))
-            self.owner_input.setText(github.get('owner', ''))
-            self.repo_input.setText(github.get('repo', ''))
-            self.branch_input.setText(github.get('branch', 'main'))
-            self.path_input.setText(github.get('path', ''))
-            
-        if 'api' in config:
-            api = config['api']
-            self.timeout_spin.setValue(int(api.get('timeout', 10)))
-            
-    def save_settings(self):
-        """Save settings to file"""
-        config = configparser.ConfigParser()
-        
-        config['github'] = {
-            'token': self.token_input.text(),
-            'owner': self.owner_input.text(),
-            'repo': self.repo_input.text(),
-            'branch': self.branch_input.text(),
-            'path': self.path_input.text()
-        }
-        
-        config['api'] = {
-            'timeout': str(self.timeout_spin.value())
-        }
-        
-        with open(self.settings_file, 'w') as f:
-            config.write(f)
-            
-    def get_settings(self):
-        """Get current settings as dict"""
-        return {
-            'github': {
-                'token': self.token_input.text(),
-                'owner': self.owner_input.text(),
-                'repo': self.repo_input.text(),
-                'branch': self.branch_input.text(),
-                'path': self.path_input.text()
-            },
-            'api': {
-                'timeout': self.timeout_spin.value()
-            }
-        }
-        
-    def test_connection(self):
-        """Test GitHub API connection"""
-        token = self.token_input.text().strip()
-        owner = self.owner_input.text().strip()
-        repo = self.repo_input.text().strip()
-        
-        if not all([token, owner, repo]):
-            QMessageBox.warning(self, "Missing Information", 
-                              "Please fill in GitHub token, owner, and repository name.")
-            return
-            
-        try:
-            headers = {
-                'Authorization': f'token {token}',
-                'Accept': 'application/vnd.github.v3+json'
-            }
-            
-            # Test repository access
-            url = f"https://api.github.com/repos/{owner}/{repo}"
-            response = requests.get(url, headers=headers, timeout=10)
-            
-            if response.status_code == 200:
-                repo_data = response.json()
-                QMessageBox.information(
-                    self, "Connection Successful", 
-                    f"Successfully connected to repository:\n"
-                    f"Name: {repo_data.get('full_name')}\n"
-                    f"Description: {repo_data.get('description', 'No description')}\n"
-                    f"Private: {repo_data.get('private', False)}"
-                )
-            elif response.status_code == 404:
-                QMessageBox.critical(
-                    self, "Repository Not Found", 
-                    f"Repository '{owner}/{repo}' not found or not accessible.\n"
-                    "Please check the owner and repository name."
-                )
-            elif response.status_code == 401:
-                QMessageBox.critical(
-                    self, "Authentication Failed", 
-                    "Invalid GitHub token. Please check your token and try again."
-                )
-            else:
-                QMessageBox.critical(
-                    self, "Connection Failed", 
-                    f"Failed to connect: {response.status_code}\n{response.text}"
-                )
-                
-        except requests.RequestException as e:
-            QMessageBox.critical(
-                self, "Connection Error", 
-                f"Failed to connect to GitHub: {str(e)}"
-            )
-            
-    def accept(self):
-        """Save settings and close dialog"""
-        self.save_settings()
-        super().accept()
-
-
-class GitHubUploader:
-    def __init__(self, settings):
-        self.settings = settings
-        
-    def upload_file(self, content, filename, commit_message=None):
-        """Upload file content to GitHub repository"""
-        github = self.settings['github']
-        token = github['token']
-        owner = github['owner']
-        repo = github['repo']
-        branch = github['branch']
-        path = github['path']
-        
-        if not all([token, owner, repo]):
-            raise ValueError("Missing required GitHub settings")
-            
-        # Construct file path
-        file_path = filename
-        if path:
-            file_path = f"{path.rstrip('/')}/{filename}"
-            
-        # Default commit message
-        if not commit_message:
-            commit_message = f"Update {filename} via Provisioning GUI"
-            
-        headers = {
-            'Authorization': f'token {token}',
-            'Accept': 'application/vnd.github.v3+json'
-        }
-        
-        # Check if file exists to get SHA for updates
-        get_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        get_params = {'ref': branch}
-        
-        try:
-            get_response = requests.get(get_url, headers=headers, params=get_params, 
-                                      timeout=self.settings['api']['timeout'])
-            file_sha = None
-            if get_response.status_code == 200:
-                file_sha = get_response.json().get('sha')
-        except requests.RequestException:
-            file_sha = None
-            
-        # Prepare upload data
-        content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
-        
-        data = {
-            'message': commit_message,
-            'content': content_b64,
-            'branch': branch
-        }
-        
-        if file_sha:
-            data['sha'] = file_sha
-            
-        # Upload file
-        put_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
-        response = requests.put(put_url, headers=headers, json=data, 
-                              timeout=self.settings['api']['timeout'])
-        
-        if response.status_code in [200, 201]:
-            result = response.json()
-            return {
-                'success': True,
-                'url': result['content']['html_url'],
-                'message': 'File uploaded successfully'
-            }
-        else:
-            return {
-                'success': False,
-                'error': f"Upload failed: {response.status_code} - {response.text}"
-            }
-            
-    def list_files(self, path=""):
-        """List files in repository path"""
-        github = self.settings['github']
-        token = github['token']
-        owner = github['owner']
-        repo = github['repo']
-        branch = github['branch']
-        
-        headers = {
-            'Authorization': f'token {token}',
-            'Accept': 'application/vnd.github.v3+json'
-        }
-        
-        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        params = {'ref': branch}
-        
-        response = requests.get(url, headers=headers, params=params,
-                              timeout=self.settings['api']['timeout'])
-        
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"Failed to list files: {response.status_code} - {response.text}")
-
-
 class ProvisioningGUI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -662,11 +359,6 @@ class ProvisioningGUI(QMainWindow):
         self.upload_btn = QPushButton("Upload to Git")
         self.upload_btn.clicked.connect(self.upload_to_git)
         
-        # Settings button
-        self.settings_btn = QPushButton("Settings")
-        self.settings_btn.clicked.connect(self.open_settings)
-        
-        header_layout.addWidget(self.settings_btn)
         header_layout.addWidget(self.load_btn)
         header_layout.addWidget(self.save_btn)
         header_layout.addWidget(self.upload_btn)
@@ -816,33 +508,6 @@ class ProvisioningGUI(QMainWindow):
             f"Model URL added to {self.current_model_type.replace('_', ' ').title()}"
         )
         
-    def load_app_settings(self):
-        """Load application settings"""
-        settings_file = Path.home() / ".vastai_provisioning_settings.ini"
-        if not settings_file.exists():
-            return
-            
-        config = configparser.ConfigParser()
-        config.read(settings_file)
-        
-        self.settings = {
-            'github': {},
-            'api': {'timeout': 10}
-        }
-        
-        if 'github' in config:
-            self.settings['github'] = dict(config['github'])
-            
-        if 'api' in config:
-            self.settings['api'] = dict(config['api'])
-            self.settings['api']['timeout'] = int(self.settings['api'].get('timeout', 10))
-            
-    def open_settings(self):
-        """Open settings dialog"""
-        dialog = SettingsDialog(self)
-        if dialog.exec() == QDialog.Accepted:
-            self.settings = dialog.get_settings()
-            QMessageBox.information(self, "Settings Saved", "Settings have been saved successfully.")
         
     def remove_items(self, key, list_widget):
         selected_items = list_widget.selectedItems()
@@ -1101,10 +766,6 @@ fi'''
         """Parse a bash script to extract arrays"""
         import re
         
-        # Initialize settings
-        self.settings = None
-        self.load_app_settings()
-        
         # Clear existing data
         for key in self.data:
             self.data[key] = []
@@ -1177,112 +838,37 @@ fi'''
             QMessageBox.information(self, "Success", f"Script saved to {filename}")
             
     def upload_to_git(self):
-        """Upload script directly to GitHub or use local git"""
-        # Check if GitHub settings are configured
-        if (self.settings and 
-            self.settings.get('github', {}).get('token') and 
-            self.settings.get('github', {}).get('owner') and 
-            self.settings.get('github', {}).get('repo')):
-            
-            self.upload_to_github()
-        else:
-            # Fallback to local git method
-            self.upload_to_local_git()
-            
-    def upload_to_github(self):
-        """Upload script directly to GitHub via API"""
-        # Get filename
-        filename, ok = QInputDialog.getText(
-            self,
-            "GitHub Upload",
-            "Enter filename for the script:",
-            text="provisioning.sh"
-        )
-        
-        if not filename or not ok:
+        """Save and commit all changes to git"""
+        # Check if we're in a git repository
+        try:
+            subprocess.run(['git', 'status'], capture_output=True, check=True)
+        except subprocess.CalledProcessError:
+            QMessageBox.critical(self, "Error", "Not in a git repository!")
             return
-            
-        if not filename.endswith('.sh'):
-            filename += '.sh'
             
         # Get commit message
         commit_message, ok = QInputDialog.getText(
             self,
             "Commit Message",
             "Enter commit message:",
-            text=f"Add provisioning script: {filename}"
+            text="Update provisioning script via GUI"
         )
         
-        if not ok:
+        if not ok or not commit_message.strip():
             return
             
         try:
-            # Generate script content
-            script_content = self.generate_script()
+            # Save the script to default.sh
+            script = self.generate_script()
+            with open('default.sh', 'w') as f:
+                f.write(script)
+            os.chmod('default.sh', 0o755)
             
-            # Upload to GitHub
-            uploader = GitHubUploader(self.settings)
-            result = uploader.upload_file(script_content, filename, commit_message)
-            
-            if result['success']:
-                QMessageBox.information(
-                    self,
-                    "Upload Successful",
-                    f"Script uploaded successfully to GitHub!\n"
-                    f"File: {filename}\n"
-                    f"URL: {result['url']}"
-                )
-            else:
-                QMessageBox.critical(
-                    self,
-                    "Upload Failed",
-                    f"Failed to upload to GitHub:\n{result['error']}"
-                )
-                
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Upload Error",
-                f"Failed to upload to GitHub: {str(e)}"
-            )
-            
-    def upload_to_local_git(self):
-        """Upload using local git (original method)"""
-        # Check if we're in a git repository
-        try:
-            subprocess.run(['git', 'status'], capture_output=True, check=True)
-        except subprocess.CalledProcessError:
-            QMessageBox.critical(self, "Error", 
-                               "GitHub settings not configured and not in a git repository!\n\n"
-                               "Please either:\n"
-                               "1. Configure GitHub settings via Settings button, or\n"
-                               "2. Run this tool from within a git repository")
-            return
-            
-        # Get filename
-        filename, ok = QFileDialog.getSaveFileName(
-            self,
-            "Save and Upload Script",
-            "provisioning.sh",
-            "Shell Scripts (*.sh)"
-        )
-        
-        if not filename or not ok:
-            return
-            
-        # Save the script
-        script = self.generate_script()
-        with open(filename, 'w') as f:
-            f.write(script)
-        os.chmod(filename, 0o755)
-        
-        try:
-            # Git add
-            subprocess.run(['git', 'add', filename], check=True)
+            # Git add all changes
+            subprocess.run(['git', 'add', '.'], check=True)
             
             # Git commit
-            commit_message = f"Add provisioning script: {os.path.basename(filename)}"
-            subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+            subprocess.run(['git', 'commit', '-m', commit_message.strip()], check=True)
             
             # Git push
             result = subprocess.run(['git', 'push'], capture_output=True, text=True)
@@ -1291,7 +877,7 @@ fi'''
                 QMessageBox.information(
                     self, 
                     "Success", 
-                    f"Script uploaded successfully!\nFile: {filename}"
+                    "Changes committed and pushed successfully!"
                 )
             else:
                 QMessageBox.warning(
