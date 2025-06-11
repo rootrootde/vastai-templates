@@ -14,8 +14,6 @@ PIP_PACKAGES=(
 )
 
 NODES=(
-    "https://github.com/ltdrdata/ComfyUI-Manager"
-    "https://github.com/cubiq/ComfyUI_essentials"
     "https://github.com/AIrjen/OneButtonPrompt"
     "https://github.com/yolain/ComfyUI-Easy-Use"
     "https://github.com/rgthree/rgthree-comfy"
