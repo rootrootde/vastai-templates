@@ -17,7 +17,9 @@ PIP_PACKAGES=(
 )
 
 NODES=(
+    "https://github.com/AIrjen/OneButtonPrompt" # 📁 AIrjen/OneButtonPrompt
     "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # 📁 ltdrdata/ComfyUI-Impact-Pack
+    "https://github.com/heshengtao/comfyui_LLM_party" # 📁 heshengtao/comfyui_LLM_party
 )
 
 WORKFLOWS=(
