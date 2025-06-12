@@ -7,13 +7,58 @@ from PySide6.QtWidgets import (
     QTabWidget, QListWidget, QPushButton, QTextEdit, QLineEdit,
     QLabel, QFileDialog, QMessageBox, QSplitter, QGroupBox,
     QAbstractItemView, QProgressBar, QScrollArea, QFrame,
-    QComboBox, QCheckBox, QInputDialog
+    QComboBox, QCheckBox, QInputDialog, QToolButton
 )
 from PySide6.QtCore import Qt, QThread, Signal
 import subprocess
 import requests
 import urllib.parse
 from datetime import datetime
+
+class CollapsibleGroup(QWidget):
+    """A collapsible group widget"""
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        
+        # Header with toggle button
+        header = QWidget()
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(5, 5, 5, 5)
+        
+        self.toggle_btn = QToolButton()
+        self.toggle_btn.setText("▼")
+        self.toggle_btn.setCheckable(True)
+        self.toggle_btn.setChecked(True)
+        self.toggle_btn.setStyleSheet("QToolButton { border: none; }")
+        self.toggle_btn.clicked.connect(self.toggle_content)
+        
+        self.title_label = QLabel(title)
+        self.title_label.setStyleSheet("font-weight: bold; font-size: 12px;")
+        
+        header_layout.addWidget(self.toggle_btn)
+        header_layout.addWidget(self.title_label)
+        header_layout.addStretch()
+        
+        # Content area
+        self.content_widget = QWidget()
+        self.content_layout = QVBoxLayout(self.content_widget)
+        
+        self.layout().addWidget(header)
+        self.layout().addWidget(self.content_widget)
+        
+    def toggle_content(self):
+        is_expanded = self.toggle_btn.isChecked()
+        self.content_widget.setVisible(is_expanded)
+        self.toggle_btn.setText("▼" if is_expanded else "▶")
+        
+    def add_widget(self, widget):
+        self.content_layout.addWidget(widget)
+        
+    def set_expanded(self, expanded):
+        self.toggle_btn.setChecked(expanded)
+        self.toggle_content()
 
 class SearchWorker(QThread):
     results_ready = Signal(list)
@@ -387,32 +432,23 @@ class ProvisioningGUI(QMainWindow):
         
         main_layout.addLayout(header_layout)
         
-        # Splitter for tabs and preview
+        # Splitter for content and preview
         splitter = QSplitter(Qt.Horizontal)
         
-        # Tab widget for categories
-        self.tabs = QTabWidget()
-        self.tabs.currentChanged.connect(self.update_preview)
+        # Scroll area for grouped categories
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setMinimumWidth(600)
         
-        # Create tabs for each category
-        self.create_category_tab("APT Packages", "apt_packages")
-        self.create_category_tab("PIP Packages", "pip_packages")
-        self.create_category_tab("ComfyUI Nodes", "nodes")
-        self.create_category_tab("Workflows", "workflows")
-        self.create_category_tab("Checkpoints", "checkpoint_models")
-        self.create_category_tab("UNET Models", "unet_models")
-        self.create_category_tab("LoRA Models", "lora_models")
-        self.create_category_tab("VAE Models", "vae_models")
-        self.create_category_tab("ESRGAN Models", "esrgan_models")
-        self.create_category_tab("Upscale Models", "upscale_models")
-        self.create_category_tab("ControlNet", "controlnet_models")
-        self.create_category_tab("Annotators", "annotator_models")
-        self.create_category_tab("CLIP Vision", "clip_vision_models")
-        self.create_category_tab("Text Encoders", "text_encoder_models")
-        self.create_category_tab("Diffusion Models", "diffusion_models")
-        self.create_settings_tab()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        scroll_layout.setSpacing(10)
         
-        splitter.addWidget(self.tabs)
+        # Create grouped categories
+        self.create_grouped_categories(scroll_layout)
+        
+        scroll_area.setWidget(scroll_widget)
+        splitter.addWidget(scroll_area)
         
         # Preview pane
         preview_group = QGroupBox("Preview")
@@ -430,28 +466,105 @@ class ProvisioningGUI(QMainWindow):
         # Initial preview
         self.update_preview()
         
-    def create_category_tab(self, name, key):
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
+    
+    
+    def create_grouped_categories(self, layout):
+        """Create categories organized into logical groups"""
         
-        # Instructions
-        if key == "apt_packages":
-            layout.addWidget(QLabel("Enter APT package names (one per line)"))
-        elif key == "pip_packages":
-            layout.addWidget(QLabel("Enter Python package names (one per line)"))
-        elif key == "nodes":
-            layout.addWidget(QLabel("Enter ComfyUI node GitHub URLs (one per line)"))
-        elif key == "workflows":
-            layout.addWidget(QLabel("Enter workflow URLs (one per line)"))
-        else:
-            layout.addWidget(QLabel(f"Enter {name} URLs (one per line)"))
+        # Group 1: Settings (always expanded)
+        settings_group = CollapsibleGroup("⚙️ Settings")
+        settings_group.set_expanded(True)
+        self.create_settings_section(settings_group)
+        layout.addWidget(settings_group)
+        
+        # Group 2: System Packages
+        packages_group = CollapsibleGroup("📦 System Packages")
+        self.create_category_widget(packages_group, "APT Packages", "apt_packages", "Enter APT package names (one per line)")
+        self.create_category_widget(packages_group, "PIP Packages", "pip_packages", "Enter Python package names (one per line)")
+        layout.addWidget(packages_group)
+        
+        # Group 3: ComfyUI Setup
+        comfyui_group = CollapsibleGroup("🔧 ComfyUI Setup")
+        self.create_category_widget(comfyui_group, "ComfyUI Nodes", "nodes", "Enter ComfyUI node GitHub URLs (one per line)")
+        self.create_category_widget(comfyui_group, "Workflows", "workflows", "Enter workflow URLs (one per line)")
+        layout.addWidget(comfyui_group)
+        
+        # Group 4: Core AI Models
+        core_models_group = CollapsibleGroup("🎯 Core AI Models")
+        self.create_category_widget(core_models_group, "Checkpoints", "checkpoint_models", "Enter Checkpoint URLs (one per line)")
+        self.create_category_widget(core_models_group, "UNET Models", "unet_models", "Enter UNET Model URLs (one per line)")
+        self.create_category_widget(core_models_group, "Diffusion Models", "diffusion_models", "Enter Diffusion Model URLs (one per line)")
+        layout.addWidget(core_models_group)
+        
+        # Group 5: Model Enhancements
+        enhancements_group = CollapsibleGroup("🎨 Model Enhancements")
+        self.create_category_widget(enhancements_group, "LoRA Models", "lora_models", "Enter LoRA Model URLs (one per line)")
+        self.create_category_widget(enhancements_group, "VAE Models", "vae_models", "Enter VAE Model URLs (one per line)")
+        self.create_category_widget(enhancements_group, "ControlNet", "controlnet_models", "Enter ControlNet URLs (one per line)")
+        layout.addWidget(enhancements_group)
+        
+        # Group 6: Upscaling & Processing
+        upscaling_group = CollapsibleGroup("⬆️ Upscaling & Processing")
+        self.create_category_widget(upscaling_group, "ESRGAN Models", "esrgan_models", "Enter ESRGAN Model URLs (one per line)")
+        self.create_category_widget(upscaling_group, "Upscale Models", "upscale_models", "Enter Upscale Model URLs (one per line)")
+        layout.addWidget(upscaling_group)
+        
+        # Group 7: Specialized Models
+        specialized_group = CollapsibleGroup("🔍 Specialized Models")
+        self.create_category_widget(specialized_group, "Annotators", "annotator_models", "Enter Annotator URLs (one per line)")
+        self.create_category_widget(specialized_group, "CLIP Vision", "clip_vision_models", "Enter CLIP Vision URLs (one per line)")
+        self.create_category_widget(specialized_group, "Text Encoders", "text_encoder_models", "Enter Text Encoder URLs (one per line)")
+        layout.addWidget(specialized_group)
+        
+        # Add stretch to push everything to the top
+        layout.addStretch()
+        
+    def create_settings_section(self, parent_group):
+        """Create the settings section within a group"""
+        # Parallel downloads setting
+        parallel_group = QGroupBox("Download Settings")
+        parallel_layout = QVBoxLayout(parallel_group)
+        
+        parallel_label = QLabel("Maximum Parallel Downloads:")
+        parallel_layout.addWidget(parallel_label)
+        
+        parallel_input_layout = QHBoxLayout()
+        self.parallel_input = QLineEdit()
+        self.parallel_input.setText(str(self.data.get('max_parallel_downloads', 4)))
+        self.parallel_input.setMaximumWidth(100)
+        self.parallel_input.setPlaceholderText("4")
+        self.parallel_input.textChanged.connect(self.update_parallel_downloads)
+        parallel_input_layout.addWidget(self.parallel_input)
+        
+        parallel_help = QLabel("(Set to 1 to disable parallel downloading)")
+        parallel_help.setStyleSheet("color: gray; font-size: 10px;")
+        parallel_input_layout.addWidget(parallel_help)
+        parallel_input_layout.addStretch()
+        
+        parallel_layout.addLayout(parallel_input_layout)
+        parent_group.add_widget(parallel_group)
+    
+    def create_category_widget(self, parent_group, name, key, instructions):
+        """Create a category widget within a group"""
+        category_widget = QWidget()
+        layout = QVBoxLayout(category_widget)
+        layout.setContentsMargins(10, 5, 10, 5)
+        
+        # Category title and instructions
+        title_label = QLabel(name)
+        title_label.setStyleSheet("font-weight: bold; font-size: 11px; color: #333;")
+        layout.addWidget(title_label)
+        
+        instructions_label = QLabel(instructions)
+        instructions_label.setStyleSheet("font-size: 9px; color: #666; margin-bottom: 5px;")
+        layout.addWidget(instructions_label)
         
         # Input area
         input_layout = QHBoxLayout()
         
         # Text input for adding items
         text_input = QTextEdit()
-        text_input.setMaximumHeight(100)
+        text_input.setMaximumHeight(80)
         text_input.setPlaceholderText("Paste URLs or package names here...")
         input_layout.addWidget(text_input)
         
@@ -466,6 +579,7 @@ class ProvisioningGUI(QMainWindow):
         # List widget
         list_widget = QListWidget()
         list_widget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        list_widget.setMaximumHeight(150)
         layout.addWidget(list_widget)
         
         # Buttons layout
@@ -491,42 +605,7 @@ class ProvisioningGUI(QMainWindow):
         setattr(self, f"{key}_list", list_widget)
         setattr(self, f"{key}_input", text_input)
         
-        self.tabs.addTab(tab, name)
-    
-    def create_settings_tab(self):
-        """Create a settings tab for configuration options"""
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-        
-        # Instructions
-        layout.addWidget(QLabel("Configure provisioning script settings"))
-        
-        # Parallel downloads setting
-        parallel_group = QGroupBox("Download Settings")
-        parallel_layout = QVBoxLayout(parallel_group)
-        
-        parallel_label = QLabel("Maximum Parallel Downloads:")
-        parallel_layout.addWidget(parallel_label)
-        
-        parallel_input_layout = QHBoxLayout()
-        self.parallel_input = QLineEdit()
-        self.parallel_input.setText(str(self.data.get('max_parallel_downloads', 4)))
-        self.parallel_input.setMaximumWidth(100)
-        self.parallel_input.setPlaceholderText("4")
-        self.parallel_input.textChanged.connect(self.update_parallel_downloads)
-        parallel_input_layout.addWidget(self.parallel_input)
-        
-        parallel_help = QLabel("(Set to 1 to disable parallel downloading)")
-        parallel_help.setStyleSheet("color: gray; font-size: 10px;")
-        parallel_input_layout.addWidget(parallel_help)
-        parallel_input_layout.addStretch()
-        
-        parallel_layout.addLayout(parallel_input_layout)
-        layout.addWidget(parallel_group)
-        
-        layout.addStretch()
-        
-        self.tabs.addTab(tab, "Settings")
+        parent_group.add_widget(category_widget)
     
     def update_parallel_downloads(self):
         """Update the max parallel downloads setting"""
