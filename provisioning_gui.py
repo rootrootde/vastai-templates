@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (
     QListWidget, QPushButton, QTextEdit, QLineEdit,
     QLabel, QFileDialog, QMessageBox, QSplitter, QGroupBox,
     QAbstractItemView, QProgressBar, QScrollArea, QFrame,
-    QComboBox, QCheckBox, QInputDialog, QStackedWidget, QListWidgetItem
+    QComboBox, QCheckBox, QInputDialog, QStackedWidget, QListWidgetItem,
+    QMenu
 )
 from PySide6.QtCore import Qt, QThread, Signal
 import subprocess
@@ -358,6 +359,9 @@ class ProvisioningGUI(QMainWindow):
             'max_parallel_downloads': 4
         }
         
+        # Presets storage
+        self.presets = self.load_presets()
+        
         self.setup_ui()
         # Database loading is now done after UI is created
         
@@ -382,9 +386,16 @@ class ProvisioningGUI(QMainWindow):
         self.upload_btn = QPushButton("Upload to Git")
         self.upload_btn.clicked.connect(self.upload_to_git)
         
+        # Presets button with dropdown menu
+        self.presets_btn = QPushButton("Presets ▼")
+        self.presets_menu = QMenu()
+        self.presets_btn.setMenu(self.presets_menu)
+        self.update_presets_menu()
+        
         header_layout.addWidget(self.load_btn)
         header_layout.addWidget(self.save_btn)
         header_layout.addWidget(self.upload_btn)
+        header_layout.addWidget(self.presets_btn)
         
         main_layout.addLayout(header_layout)
         
@@ -974,6 +985,158 @@ class ProvisioningGUI(QMainWindow):
             
             QMessageBox.information(self, "Success", f"Script saved to {filename}")
             
+    def load_presets(self):
+        """Load presets from JSON file"""
+        try:
+            if os.path.exists('presets.json'):
+                with open('presets.json', 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Error loading presets: {e}")
+        return {}
+    
+    def save_presets(self):
+        """Save presets to JSON file"""
+        try:
+            with open('presets.json', 'w') as f:
+                json.dump(self.presets, f, indent=2)
+        except Exception as e:
+            print(f"Error saving presets: {e}")
+    
+    def update_presets_menu(self):
+        """Update the presets dropdown menu"""
+        self.presets_menu.clear()
+        
+        # Add "Save Current as Preset" option
+        save_action = self.presets_menu.addAction("💾 Save Current as Preset...")
+        save_action.triggered.connect(self.save_current_as_preset)
+        
+        self.presets_menu.addSeparator()
+        
+        # Add existing presets
+        if self.presets:
+            for preset_name in sorted(self.presets.keys()):
+                preset_action = self.presets_menu.addAction(preset_name)
+                preset_action.triggered.connect(lambda checked=False, name=preset_name: self.load_preset(name))
+            
+            self.presets_menu.addSeparator()
+            
+            # Add delete preset submenu
+            delete_menu = self.presets_menu.addMenu("🗑️ Delete Preset")
+            for preset_name in sorted(self.presets.keys()):
+                delete_action = delete_menu.addAction(preset_name)
+                delete_action.triggered.connect(lambda checked=False, name=preset_name: self.delete_preset(name))
+        else:
+            no_presets_action = self.presets_menu.addAction("(No presets saved)")
+            no_presets_action.setEnabled(False)
+    
+    def save_current_as_preset(self):
+        """Save the current configuration as a preset"""
+        preset_name, ok = QInputDialog.getText(
+            self,
+            "Save Preset",
+            "Enter preset name:",
+            text=""
+        )
+        
+        if not ok or not preset_name.strip():
+            return
+        
+        preset_name = preset_name.strip()
+        
+        # Check if preset already exists
+        if preset_name in self.presets:
+            reply = QMessageBox.question(
+                self,
+                "Overwrite Preset",
+                f"Preset '{preset_name}' already exists. Overwrite?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply != QMessageBox.Yes:
+                return
+        
+        # Save only checked items
+        preset_data = {}
+        for key in self.data:
+            if key == 'max_parallel_downloads':
+                preset_data[key] = self.data[key]
+            else:
+                # Only save checked items
+                preset_data[key] = [item['url'] for item in self.data[key] if item.get('checked', True)]
+        
+        self.presets[preset_name] = preset_data
+        self.save_presets()
+        self.update_presets_menu()
+        
+        QMessageBox.information(
+            self,
+            "Preset Saved",
+            f"Preset '{preset_name}' saved successfully!"
+        )
+    
+    def load_preset(self, preset_name):
+        """Load a preset configuration"""
+        if preset_name not in self.presets:
+            return
+        
+        reply = QMessageBox.question(
+            self,
+            "Load Preset",
+            f"Loading preset '{preset_name}' will replace your current configuration. Continue?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply != QMessageBox.Yes:
+            return
+        
+        preset_data = self.presets[preset_name]
+        
+        # Clear current data
+        for key in self.data:
+            if key == 'max_parallel_downloads':
+                self.data[key] = preset_data.get(key, 4)
+            else:
+                self.data[key] = []
+        
+        # Load preset data
+        for key, urls in preset_data.items():
+            if key != 'max_parallel_downloads' and isinstance(urls, list):
+                # Convert to new format with all items checked
+                self.data[key] = [{'url': url, 'checked': True} for url in urls]
+        
+        # Refresh UI
+        self.refresh_ui_from_data()
+        self.update_preview()
+        self.save_database()
+        
+        QMessageBox.information(
+            self,
+            "Preset Loaded",
+            f"Preset '{preset_name}' loaded successfully!"
+        )
+    
+    def delete_preset(self, preset_name):
+        """Delete a preset"""
+        reply = QMessageBox.question(
+            self,
+            "Delete Preset",
+            f"Are you sure you want to delete preset '{preset_name}'?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply != QMessageBox.Yes:
+            return
+        
+        del self.presets[preset_name]
+        self.save_presets()
+        self.update_presets_menu()
+        
+        QMessageBox.information(
+            self,
+            "Preset Deleted",
+            f"Preset '{preset_name}' deleted successfully!"
+        )
+    
     def upload_to_git(self):
         """Save and commit all changes to git"""
         # Check if we're in a git repository
