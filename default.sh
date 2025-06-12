@@ -4,7 +4,7 @@ source /venv/main/bin/activate
 COMFYUI_DIR=${WORKSPACE}/ComfyUI
 
 # Configure parallel downloads (set to 1 to disable parallel downloading)
-MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-8}
+MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-4}
 
 # Packages are installed after nodes so we can fix them...
 
@@ -18,7 +18,6 @@ PIP_PACKAGES=(
 
 NODES=(
     "https://github.com/AIrjen/OneButtonPrompt"
-    "https://github.com/yolain/ComfyUI-Easy-Use"
     "https://github.com/rgthree/rgthree-comfy"
     "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
     "https://github.com/SeargeDP/SeargeSDXL"
@@ -31,7 +30,7 @@ WORKFLOWS=(
 )
 
 CHECKPOINT_MODELS=(
-    "https://civitai.com/api/download/models/1759168"
+
 )
 
 UNET_MODELS=(
@@ -39,12 +38,10 @@ UNET_MODELS=(
 )
 
 LORA_MODELS=(
-    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_bidirect2_T2V_1_3B_lora_rank32.safetensors"
     "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors"
 )
 
 VAE_MODELS=(
-    "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors"
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors"
     "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true"
 )
@@ -54,22 +51,15 @@ ESRGAN_MODELS=(
 )
 
 UPSCALE_MODELS=(
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth"
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth"
+
 )
 
 CONTROLNET_MODELS=(
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors"
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
+
 )
 
 ANNOTATOR_MODELS=(
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth"
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
+
 )
 
 CLIP_VISION_MODELS=(
@@ -86,10 +76,7 @@ TEXT_ENCODER_MODELS=(
 )
 
 DIFFUSION_MODELS=(
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_1.3B_fp16.safetensors"
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_14B_fp16.safetensors"
     "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true"
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors?download=true"
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors"
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true"
 )

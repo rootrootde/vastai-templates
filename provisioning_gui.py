@@ -4,61 +4,16 @@ import os
 from pathlib import Path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTabWidget, QListWidget, QPushButton, QTextEdit, QLineEdit,
+    QListWidget, QPushButton, QTextEdit, QLineEdit,
     QLabel, QFileDialog, QMessageBox, QSplitter, QGroupBox,
     QAbstractItemView, QProgressBar, QScrollArea, QFrame,
-    QComboBox, QCheckBox, QInputDialog, QToolButton
+    QComboBox, QCheckBox, QInputDialog, QStackedWidget, QListWidgetItem
 )
 from PySide6.QtCore import Qt, QThread, Signal
 import subprocess
 import requests
 import urllib.parse
 from datetime import datetime
-
-class CollapsibleGroup(QWidget):
-    """A collapsible group widget"""
-    def __init__(self, title, parent=None):
-        super().__init__(parent)
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        
-        # Header with toggle button
-        header = QWidget()
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(5, 5, 5, 5)
-        
-        self.toggle_btn = QToolButton()
-        self.toggle_btn.setText("▼")
-        self.toggle_btn.setCheckable(True)
-        self.toggle_btn.setChecked(True)
-        self.toggle_btn.setStyleSheet("QToolButton { border: none; }")
-        self.toggle_btn.clicked.connect(self.toggle_content)
-        
-        self.title_label = QLabel(title)
-        self.title_label.setStyleSheet("font-weight: bold; font-size: 12px;")
-        
-        header_layout.addWidget(self.toggle_btn)
-        header_layout.addWidget(self.title_label)
-        header_layout.addStretch()
-        
-        # Content area
-        self.content_widget = QWidget()
-        self.content_layout = QVBoxLayout(self.content_widget)
-        
-        self.layout().addWidget(header)
-        self.layout().addWidget(self.content_widget)
-        
-    def toggle_content(self):
-        is_expanded = self.toggle_btn.isChecked()
-        self.content_widget.setVisible(is_expanded)
-        self.toggle_btn.setText("▼" if is_expanded else "▶")
-        
-    def add_widget(self, widget):
-        self.content_layout.addWidget(widget)
-        
-    def set_expanded(self, expanded):
-        self.toggle_btn.setChecked(expanded)
-        self.toggle_content()
 
 class SearchWorker(QThread):
     results_ready = Signal(list)
@@ -382,7 +337,7 @@ class ProvisioningGUI(QMainWindow):
         self.setWindowTitle("Vast.ai Provisioning Script Generator")
         self.setGeometry(100, 100, 1000, 700)
         
-        # Data storage
+        # Data storage - now stores items as {url: str, checked: bool}
         self.data = {
             'apt_packages': [],
             'pip_packages': [],
@@ -432,23 +387,42 @@ class ProvisioningGUI(QMainWindow):
         
         main_layout.addLayout(header_layout)
         
-        # Splitter for content and preview
+        # Create 3-part horizontal splitter
         splitter = QSplitter(Qt.Horizontal)
         
-        # Scroll area for grouped categories
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setMinimumWidth(600)
+        # Left panel: Category list
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(5, 5, 5, 5)
         
-        scroll_widget = QWidget()
-        scroll_layout = QVBoxLayout(scroll_widget)
-        scroll_layout.setSpacing(10)
+        categories_label = QLabel("Categories")
+        categories_label.setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;")
+        left_layout.addWidget(categories_label)
         
-        # Create grouped categories
-        self.create_grouped_categories(scroll_layout)
+        self.category_list = QListWidget()
+        self.category_list.setMaximumWidth(200)
+        self.category_list.setMinimumWidth(150)
         
-        scroll_area.setWidget(scroll_widget)
-        splitter.addWidget(scroll_area)
+        left_layout.addWidget(self.category_list)
+        splitter.addWidget(left_panel)
+        
+        # Middle panel: URL management
+        self.middle_panel = QWidget()
+        self.middle_layout = QVBoxLayout(self.middle_panel)
+        self.middle_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Create a stacked widget to hold all category panels
+        self.stacked_widget = QStackedWidget()
+        self.middle_layout.addWidget(self.stacked_widget)
+        
+        # Create panels for each category
+        self.create_category_panels()
+        
+        splitter.addWidget(self.middle_panel)
+        
+        # Now that stacked_widget exists, we can populate and connect
+        self.populate_category_list()
+        self.category_list.currentItemChanged.connect(self.on_category_changed)
         
         # Preview pane
         preview_group = QGroupBox("Preview")
@@ -459,7 +433,7 @@ class ProvisioningGUI(QMainWindow):
         preview_layout.addWidget(self.preview_text)
         
         splitter.addWidget(preview_group)
-        splitter.setSizes([600, 400])
+        splitter.setSizes([180, 500, 400])
         
         main_layout.addWidget(splitter)
         
@@ -468,59 +442,72 @@ class ProvisioningGUI(QMainWindow):
         
     
     
-    def create_grouped_categories(self, layout):
-        """Create categories organized into logical groups"""
+    def populate_category_list(self):
+        """Populate the category list with all available categories"""
+        categories = [
+            ("⚙️ Settings", "settings"),
+            ("📦 APT Packages", "apt_packages"),
+            ("📦 PIP Packages", "pip_packages"),
+            ("🔧 ComfyUI Nodes", "nodes"),
+            ("🔧 Workflows", "workflows"),
+            ("🎯 Checkpoints", "checkpoint_models"),
+            ("🎯 UNET Models", "unet_models"),
+            ("🎯 Diffusion Models", "diffusion_models"),
+            ("🎨 LoRA Models", "lora_models"),
+            ("🎨 VAE Models", "vae_models"),
+            ("🎨 ControlNet", "controlnet_models"),
+            ("⬆️ ESRGAN Models", "esrgan_models"),
+            ("⬆️ Upscale Models", "upscale_models"),
+            ("🔍 Annotators", "annotator_models"),
+            ("🔍 CLIP Vision", "clip_vision_models"),
+            ("🔍 Text Encoders", "text_encoder_models"),
+        ]
         
-        # Group 1: Settings (always expanded)
-        settings_group = CollapsibleGroup("⚙️ Settings")
-        settings_group.set_expanded(True)
-        self.create_settings_section(settings_group)
-        layout.addWidget(settings_group)
+        for display_name, key in categories:
+            self.category_list.addItem(display_name)
+            self.category_list.item(self.category_list.count() - 1).setData(Qt.UserRole, key)
         
-        # Group 2: System Packages
-        packages_group = CollapsibleGroup("📦 System Packages")
-        self.create_category_widget(packages_group, "APT Packages", "apt_packages", "Enter APT package names (one per line)")
-        self.create_category_widget(packages_group, "PIP Packages", "pip_packages", "Enter Python package names (one per line)")
-        layout.addWidget(packages_group)
+        # Select first item by default
+        if self.category_list.count() > 0:
+            self.category_list.setCurrentRow(0)
+    
+    def create_category_panels(self):
+        """Create panels for each category in the stacked widget"""
+        # Settings panel
+        self.create_settings_panel()
         
-        # Group 3: ComfyUI Setup
-        comfyui_group = CollapsibleGroup("🔧 ComfyUI Setup")
-        self.create_category_widget(comfyui_group, "ComfyUI Nodes", "nodes", "Enter ComfyUI node GitHub URLs (one per line)")
-        self.create_category_widget(comfyui_group, "Workflows", "workflows", "Enter workflow URLs (one per line)")
-        layout.addWidget(comfyui_group)
+        # Create panels for each model category
+        category_configs = [
+            ("apt_packages", "APT Packages", "Enter APT package names (one per line)"),
+            ("pip_packages", "PIP Packages", "Enter Python package names (one per line)"),
+            ("nodes", "ComfyUI Nodes", "Enter ComfyUI node GitHub URLs (one per line)"),
+            ("workflows", "Workflows", "Enter workflow URLs (one per line)"),
+            ("checkpoint_models", "Checkpoints", "Enter Checkpoint URLs (one per line)"),
+            ("unet_models", "UNET Models", "Enter UNET Model URLs (one per line)"),
+            ("diffusion_models", "Diffusion Models", "Enter Diffusion Model URLs (one per line)"),
+            ("lora_models", "LoRA Models", "Enter LoRA Model URLs (one per line)"),
+            ("vae_models", "VAE Models", "Enter VAE Model URLs (one per line)"),
+            ("controlnet_models", "ControlNet", "Enter ControlNet URLs (one per line)"),
+            ("esrgan_models", "ESRGAN Models", "Enter ESRGAN Model URLs (one per line)"),
+            ("upscale_models", "Upscale Models", "Enter Upscale Model URLs (one per line)"),
+            ("annotator_models", "Annotators", "Enter Annotator URLs (one per line)"),
+            ("clip_vision_models", "CLIP Vision", "Enter CLIP Vision URLs (one per line)"),
+            ("text_encoder_models", "Text Encoders", "Enter Text Encoder URLs (one per line)"),
+        ]
         
-        # Group 4: Core AI Models
-        core_models_group = CollapsibleGroup("🎯 Core AI Models")
-        self.create_category_widget(core_models_group, "Checkpoints", "checkpoint_models", "Enter Checkpoint URLs (one per line)")
-        self.create_category_widget(core_models_group, "UNET Models", "unet_models", "Enter UNET Model URLs (one per line)")
-        self.create_category_widget(core_models_group, "Diffusion Models", "diffusion_models", "Enter Diffusion Model URLs (one per line)")
-        layout.addWidget(core_models_group)
+        for key, name, instructions in category_configs:
+            self.create_category_panel(key, name, instructions)
+    
+    def create_settings_panel(self):
+        """Create the settings panel"""
+        settings_widget = QWidget()
+        layout = QVBoxLayout(settings_widget)
         
-        # Group 5: Model Enhancements
-        enhancements_group = CollapsibleGroup("🎨 Model Enhancements")
-        self.create_category_widget(enhancements_group, "LoRA Models", "lora_models", "Enter LoRA Model URLs (one per line)")
-        self.create_category_widget(enhancements_group, "VAE Models", "vae_models", "Enter VAE Model URLs (one per line)")
-        self.create_category_widget(enhancements_group, "ControlNet", "controlnet_models", "Enter ControlNet URLs (one per line)")
-        layout.addWidget(enhancements_group)
+        # Title
+        title = QLabel("Settings")
+        title.setStyleSheet("font-weight: bold; font-size: 16px; margin-bottom: 10px;")
+        layout.addWidget(title)
         
-        # Group 6: Upscaling & Processing
-        upscaling_group = CollapsibleGroup("⬆️ Upscaling & Processing")
-        self.create_category_widget(upscaling_group, "ESRGAN Models", "esrgan_models", "Enter ESRGAN Model URLs (one per line)")
-        self.create_category_widget(upscaling_group, "Upscale Models", "upscale_models", "Enter Upscale Model URLs (one per line)")
-        layout.addWidget(upscaling_group)
-        
-        # Group 7: Specialized Models
-        specialized_group = CollapsibleGroup("🔍 Specialized Models")
-        self.create_category_widget(specialized_group, "Annotators", "annotator_models", "Enter Annotator URLs (one per line)")
-        self.create_category_widget(specialized_group, "CLIP Vision", "clip_vision_models", "Enter CLIP Vision URLs (one per line)")
-        self.create_category_widget(specialized_group, "Text Encoders", "text_encoder_models", "Enter Text Encoder URLs (one per line)")
-        layout.addWidget(specialized_group)
-        
-        # Add stretch to push everything to the top
-        layout.addStretch()
-        
-    def create_settings_section(self, parent_group):
-        """Create the settings section within a group"""
         # Parallel downloads setting
         parallel_group = QGroupBox("Download Settings")
         parallel_layout = QVBoxLayout(parallel_group)
@@ -542,21 +529,25 @@ class ProvisioningGUI(QMainWindow):
         parallel_input_layout.addStretch()
         
         parallel_layout.addLayout(parallel_input_layout)
-        parent_group.add_widget(parallel_group)
-    
-    def create_category_widget(self, parent_group, name, key, instructions):
-        """Create a category widget within a group"""
-        category_widget = QWidget()
-        layout = QVBoxLayout(category_widget)
-        layout.setContentsMargins(10, 5, 10, 5)
+        layout.addWidget(parallel_group)
         
-        # Category title and instructions
-        title_label = QLabel(name)
-        title_label.setStyleSheet("font-weight: bold; font-size: 11px; color: #333;")
-        layout.addWidget(title_label)
+        layout.addStretch()
         
+        self.stacked_widget.addWidget(settings_widget)
+        
+    def create_category_panel(self, key, name, instructions):
+        """Create a panel for a single category"""
+        panel_widget = QWidget()
+        layout = QVBoxLayout(panel_widget)
+        
+        # Title
+        title = QLabel(name)
+        title.setStyleSheet("font-weight: bold; font-size: 16px; margin-bottom: 5px;")
+        layout.addWidget(title)
+        
+        # Instructions
         instructions_label = QLabel(instructions)
-        instructions_label.setStyleSheet("font-size: 9px; color: #666; margin-bottom: 5px;")
+        instructions_label.setStyleSheet("font-size: 12px; color: #666; margin-bottom: 10px;")
         layout.addWidget(instructions_label)
         
         # Input area
@@ -564,7 +555,7 @@ class ProvisioningGUI(QMainWindow):
         
         # Text input for adding items
         text_input = QTextEdit()
-        text_input.setMaximumHeight(80)
+        text_input.setMaximumHeight(120)
         text_input.setPlaceholderText("Paste URLs or package names here...")
         input_layout.addWidget(text_input)
         
@@ -579,7 +570,6 @@ class ProvisioningGUI(QMainWindow):
         # List widget
         list_widget = QListWidget()
         list_widget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        list_widget.setMaximumHeight(150)
         layout.addWidget(list_widget)
         
         # Buttons layout
@@ -599,13 +589,57 @@ class ProvisioningGUI(QMainWindow):
         remove_btn.clicked.connect(lambda: self.remove_items(key, list_widget))
         button_layout.addWidget(remove_btn)
         
+        # Check all button
+        check_all_btn = QPushButton("Check All")
+        check_all_btn.clicked.connect(lambda: self.set_all_checked(key, list_widget, True))
+        button_layout.addWidget(check_all_btn)
+        
+        # Uncheck all button
+        uncheck_all_btn = QPushButton("Uncheck All")
+        uncheck_all_btn.clicked.connect(lambda: self.set_all_checked(key, list_widget, False))
+        button_layout.addWidget(uncheck_all_btn)
+        
+        button_layout.addStretch()
         layout.addLayout(button_layout)
         
         # Store references
         setattr(self, f"{key}_list", list_widget)
         setattr(self, f"{key}_input", text_input)
         
-        parent_group.add_widget(category_widget)
+        self.stacked_widget.addWidget(panel_widget)
+    
+    def on_category_changed(self, current, previous):
+        """Handle category selection change"""
+        if not current:
+            return
+            
+        key = current.data(Qt.UserRole)
+        if not key:
+            return
+            
+        # Map keys to stacked widget indices
+        index_map = {
+            "settings": 0,
+            "apt_packages": 1,
+            "pip_packages": 2,
+            "nodes": 3,
+            "workflows": 4,
+            "checkpoint_models": 5,
+            "unet_models": 6,
+            "diffusion_models": 7,
+            "lora_models": 8,
+            "vae_models": 9,
+            "controlnet_models": 10,
+            "esrgan_models": 11,
+            "upscale_models": 12,
+            "annotator_models": 13,
+            "clip_vision_models": 14,
+            "text_encoder_models": 15,
+        }
+        
+        if key in index_map:
+            self.stacked_widget.setCurrentIndex(index_map[key])
+    
     
     def update_parallel_downloads(self):
         """Update the max parallel downloads setting"""
@@ -627,12 +661,50 @@ class ProvisioningGUI(QMainWindow):
         items = [line.strip() for line in text.split('\n') if line.strip()]
         
         list_widget = getattr(self, f"{key}_list")
-        for item in items:
-            if item not in self.data[key]:
-                self.data[key].append(item)
-                list_widget.addItem(item)
+        for item_text in items:
+            # Check if item already exists
+            exists = any(item['url'] == item_text for item in self.data[key])
+            if not exists:
+                # Add to data with checked=True by default
+                self.data[key].append({'url': item_text, 'checked': True})
+                # Create list item with checkbox
+                self.add_list_item_with_checkbox(list_widget, item_text, True, key)
         
         text_input.clear()
+        self.update_preview()
+    
+    def add_list_item_with_checkbox(self, list_widget, text, checked, key):
+        """Add a list item with a checkbox"""
+        item = QListWidgetItem()
+        checkbox = QCheckBox(text)
+        checkbox.setChecked(checked)
+        checkbox.stateChanged.connect(lambda state: self.update_item_checked_state(key, text, state == Qt.Checked))
+        
+        list_widget.addItem(item)
+        list_widget.setItemWidget(item, checkbox)
+        item.setSizeHint(checkbox.sizeHint())
+    
+    def update_item_checked_state(self, key, url, checked):
+        """Update the checked state of an item in the data"""
+        for item in self.data[key]:
+            if item['url'] == url:
+                item['checked'] = checked
+                break
+        self.update_preview()
+    
+    def set_all_checked(self, key, list_widget, checked):
+        """Set all items in a category to checked or unchecked"""
+        # Update data
+        for item in self.data[key]:
+            item['checked'] = checked
+        
+        # Update UI
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+            checkbox = list_widget.itemWidget(item)
+            if checkbox:
+                checkbox.setChecked(checked)
+        
         self.update_preview()
         
     def open_search_dialog(self, model_type):
@@ -652,9 +724,13 @@ class ProvisioningGUI(QMainWindow):
             model_type = self.current_model_type
             list_widget = getattr(self, f"{model_type}_list")
             
-            if url not in self.data[model_type]:
-                self.data[model_type].append(url)
-                list_widget.addItem(url)
+            # Check if URL already exists
+            exists = any(item['url'] == url for item in self.data[model_type])
+            if not exists:
+                # Add to data with checked=True by default
+                self.data[model_type].append({'url': url, 'checked': True})
+                # Create list item with checkbox
+                self.add_list_item_with_checkbox(list_widget, url, True, model_type)
                 self.update_preview()
                 
         # Show success message
@@ -668,8 +744,13 @@ class ProvisioningGUI(QMainWindow):
     def remove_items(self, key, list_widget):
         selected_items = list_widget.selectedItems()
         for item in selected_items:
-            self.data[key].remove(item.text())
-            list_widget.takeItem(list_widget.row(item))
+            # Get checkbox widget
+            checkbox = list_widget.itemWidget(item)
+            if checkbox:
+                url = checkbox.text()
+                # Remove from data
+                self.data[key] = [i for i in self.data[key] if i['url'] != url]
+                list_widget.takeItem(list_widget.row(item))
         
         self.update_preview()
         
@@ -688,11 +769,15 @@ class ProvisioningGUI(QMainWindow):
             QMessageBox.critical(self, "Error", "Template file 'template.sh' not found!")
             return ""
         
-        # Format the arrays
+        # Format the arrays - only include checked items
         def format_array(items):
             if not items:
                 return ""
-            return '\n'.join(f'    "{item}"' for item in items)
+            # Filter to only checked items
+            checked_urls = [item['url'] for item in items if item.get('checked', True)]
+            if not checked_urls:
+                return ""
+            return '\n'.join(f'    "{url}"' for url in checked_urls)
         
         # Replace placeholders using string replacement
         replacements = {
@@ -770,13 +855,14 @@ class ProvisioningGUI(QMainWindow):
                 array_content = match.group(1)
                 # Extract quoted strings
                 items = re.findall(r'"([^"]+)"', array_content)
-                self.data[key] = items
+                # Convert to new format with checked=True by default
+                self.data[key] = [{'url': url, 'checked': True} for url in items]
                 
                 # Update UI
                 list_widget = getattr(self, f"{key}_list", None)
                 if list_widget:
-                    for item in items:
-                        list_widget.addItem(item)
+                    for url in items:
+                        self.add_list_item_with_checkbox(list_widget, url, True, key)
         
         # Parse MAX_PARALLEL_DOWNLOADS setting
         max_parallel_match = re.search(r'MAX_PARALLEL_DOWNLOADS=(\d+)', content)
