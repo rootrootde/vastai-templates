@@ -2,6 +2,7 @@
 import sys
 import os
 from pathlib import Path
+import json
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QPushButton, QTextEdit, QLineEdit,
@@ -358,7 +359,7 @@ class ProvisioningGUI(QMainWindow):
         }
         
         self.setup_ui()
-        self.load_default_script()
+        # Database loading is now done after UI is created
         
     def setup_ui(self):
         # Central widget
@@ -436,6 +437,10 @@ class ProvisioningGUI(QMainWindow):
         splitter.setSizes([180, 500, 400])
         
         main_layout.addWidget(splitter)
+        
+        # Load database and script after UI is fully created
+        self.load_database()
+        self.load_default_script()
         
         # Initial preview
         self.update_preview()
@@ -672,6 +677,7 @@ class ProvisioningGUI(QMainWindow):
         
         text_input.clear()
         self.update_preview()
+        self.save_database()  # Auto-save database
     
     def add_list_item_with_checkbox(self, list_widget, text, checked, key):
         """Add a list item with a checkbox"""
@@ -691,6 +697,7 @@ class ProvisioningGUI(QMainWindow):
                 item['checked'] = checked
                 break
         self.update_preview()
+        self.save_database()  # Auto-save when checkbox state changes
     
     def set_all_checked(self, key, list_widget, checked):
         """Set all items in a category to checked or unchecked"""
@@ -707,6 +714,61 @@ class ProvisioningGUI(QMainWindow):
         
         self.update_preview()
         
+    def save_database(self):
+        """Save the entire database to a JSON file"""
+        try:
+            with open('model_database.json', 'w') as f:
+                json.dump(self.data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving database: {e}")
+    
+    def load_database(self):
+        """Load the database from JSON file"""
+        try:
+            if os.path.exists('model_database.json'):
+                with open('model_database.json', 'r') as f:
+                    loaded_data = json.load(f)
+                    
+                # Merge with existing data structure
+                for key in self.data:
+                    if key in loaded_data:
+                        if key == 'max_parallel_downloads':
+                            self.data[key] = loaded_data[key]
+                        else:
+                            # Ensure all items have the new format
+                            items = loaded_data[key]
+                            if items and isinstance(items[0], str):
+                                # Old format - convert to new
+                                self.data[key] = [{'url': url, 'checked': True} for url in items]
+                            else:
+                                # New format
+                                self.data[key] = items
+                
+                # Update UI with loaded data
+                self.refresh_ui_from_data()
+        except Exception as e:
+            print(f"Error loading database: {e}")
+    
+    def refresh_ui_from_data(self):
+        """Refresh all UI elements from the data"""
+        # Update each category's list widget
+        for key in self.data:
+            if key != 'max_parallel_downloads':
+                list_widget = getattr(self, f"{key}_list", None)
+                if list_widget:
+                    list_widget.clear()
+                    for item in self.data[key]:
+                        self.add_list_item_with_checkbox(
+                            list_widget, 
+                            item['url'], 
+                            item.get('checked', True), 
+                            key
+                        )
+        
+        # Update parallel downloads setting
+        if hasattr(self, 'parallel_input'):
+            self.parallel_input.setText(str(self.data.get('max_parallel_downloads', 4)))
+    
     def open_search_dialog(self, model_type):
         """Open the model search dialog"""
         if not hasattr(self, 'search_dialog') or not self.search_dialog:
@@ -732,6 +794,7 @@ class ProvisioningGUI(QMainWindow):
                 # Create list item with checkbox
                 self.add_list_item_with_checkbox(list_widget, url, True, model_type)
                 self.update_preview()
+                self.save_database()  # Auto-save after adding from search
                 
         # Show success message
         QMessageBox.information(
@@ -753,6 +816,7 @@ class ProvisioningGUI(QMainWindow):
                 list_widget.takeItem(list_widget.row(item))
         
         self.update_preview()
+        self.save_database()  # Auto-save after removal
         
     def update_preview(self):
         if not hasattr(self, 'preview_text'):

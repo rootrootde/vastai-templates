@@ -1,0 +1,104 @@
+{
+  "apt_packages": [],
+  "pip_packages": [],
+  "nodes": [
+    {
+      "url": "https://github.com/AIrjen/OneButtonPrompt",
+      "checked": true
+    },
+    {
+      "url": "https://github.com/rgthree/rgthree-comfy",
+      "checked": true
+    },
+    {
+      "url": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts",
+      "checked": true
+    },
+    {
+      "url": "https://github.com/SeargeDP/SeargeSDXL",
+      "checked": true
+    },
+    {
+      "url": "https://github.com/lgldlk/ComfyUI-PC-ding-dong",
+      "checked": true
+    },
+    {
+      "url": "https://github.com/MoonGoblinDev/Civicomfy",
+      "checked": true
+    }
+  ],
+  "workflows": [],
+  "checkpoint_models": [],
+  "unet_models": [],
+  "lora_models": [
+    {
+      "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+      "checked": true
+    }
+  ],
+  "vae_models": [
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true",
+      "checked": true
+    }
+  ],
+  "esrgan_models": [],
+  "upscale_models": [],
+  "controlnet_models": [],
+  "annotator_models": [],
+  "clip_vision_models": [
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true",
+      "checked": true
+    }
+  ],
+  "text_encoder_models": [
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_l_hidream.safetensors?download=true",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_g_hidream.safetensors?download=true",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/llama_3.1_8b_instruct_fp8_scaled.safetensors",
+      "checked": true
+    }
+  ],
+  "diffusion_models": [
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors",
+      "checked": true
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true",
+      "checked": true
+    }
+  ],
+  "max_parallel_downloads": 4
+}
