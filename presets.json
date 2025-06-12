@@ -117,7 +117,6 @@
       "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
     ],
     "annotator_models": [
-      "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
       "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
     ],
     "clip_vision_models": [

@@ -60,7 +60,6 @@ CONTROLNET_MODELS=(
 )
 
 ANNOTATOR_MODELS=(
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth" # lllyasviel/Annotators
     "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth" # lllyasviel/Annotators
 )
 

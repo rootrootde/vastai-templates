@@ -134,7 +134,7 @@
   "annotator_models": [
     {
       "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
-      "checked": true,
+      "checked": false,
       "name": "lllyasviel/Annotators"
     },
     {
