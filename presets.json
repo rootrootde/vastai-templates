@@ -11,7 +11,9 @@
       "https://github.com/MoonGoblinDev/Civicomfy"
     ],
     "workflows": [],
-    "checkpoint_models": [],
+    "checkpoint_models": [
+      "https://civitai.com/api/download/models/798204"
+    ],
     "unet_models": [],
     "lora_models": [
       "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors"
@@ -42,5 +44,87 @@
       "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true"
     ],
     "max_parallel_downloads": 4
+  },
+  "SDXL Complete Setup": {
+    "checkpoint_models": [
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors",
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors"
+    ],
+    "vae_models": [
+      "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors"
+    ],
+    "lora_models": [
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors"
+    ],
+    "upscale_models": [
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth"
+    ],
+    "annotator_models": [
+      "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
+      "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
+    ],
+    "clip_vision_models": [
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
+    ],
+    "controlnet_models": [
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
+    ],
+    "apt_packages": [],
+    "pip_packages": [],
+    "nodes": [],
+    "workflows": [],
+    "unet_models": [],
+    "esrgan_models": [],
+    "text_encoder_models": [],
+    "diffusion_models": [],
+    "max_parallel_downloads": 4
+  },
+  "SeargeSDXL": {
+    "apt_packages": [],
+    "pip_packages": [],
+    "nodes": [
+      "https://github.com/ltdrdata/ComfyUI-Impact-Pack"
+    ],
+    "workflows": [],
+    "checkpoint_models": [
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors",
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors"
+    ],
+    "unet_models": [],
+    "lora_models": [
+      "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors"
+    ],
+    "vae_models": [
+      "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors"
+    ],
+    "esrgan_models": [],
+    "upscale_models": [
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth",
+      "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth"
+    ],
+    "controlnet_models": [
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors",
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
+    ],
+    "annotator_models": [
+      "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
+      "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
+    ],
+    "clip_vision_models": [
+      "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
+    ],
+    "text_encoder_models": [],
+    "diffusion_models": [],
+    "max_parallel_downloads": 10
   }
 }

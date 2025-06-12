@@ -17,7 +17,7 @@ PIP_PACKAGES=(
 )
 
 NODES=(
-
+    "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # 📁 ltdrdata/ComfyUI-Impact-Pack
 )
 
 WORKFLOWS=(
