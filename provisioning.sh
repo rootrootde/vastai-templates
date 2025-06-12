@@ -4,7 +4,7 @@ source /venv/main/bin/activate
 COMFYUI_DIR=${WORKSPACE}/ComfyUI
 
 # Configure parallel downloads (set to 1 to disable parallel downloading)
-MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-4}
+MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-8}
 
 # Packages are installed after nodes so we can fix them...
 

@@ -4,7 +4,7 @@ source /venv/main/bin/activate
 COMFYUI_DIR=${WORKSPACE}/ComfyUI
 
 # Configure parallel downloads (set to 1 to disable parallel downloading)
-MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-4}
+MAX_PARALLEL_DOWNLOADS=${MAX_PARALLEL_DOWNLOADS:-8}
 
 # Packages are installed after nodes so we can fix them...
 
@@ -74,6 +74,7 @@ ANNOTATOR_MODELS=(
 
 CLIP_VISION_MODELS=(
     "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
+    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true"
 )
 
 TEXT_ENCODER_MODELS=(
@@ -90,6 +91,7 @@ DIFFUSION_MODELS=(
     "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true"
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_1.3B_fp16.safetensors?download=true"
     "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors"
+    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true"
 )
 
 
