@@ -17,16 +17,16 @@ PIP_PACKAGES=(
 )
 
 NODES=(
-    "https://github.com/AIrjen/OneButtonPrompt" # 📁 AIrjen/OneButtonPrompt
-    "https://github.com/rgthree/rgthree-comfy" # 📁 rgthree/rgthree-comfy
-    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts" # 📁 pythongosssss/ComfyUI-Custom-Scripts
-    "https://github.com/SeargeDP/SeargeSDXL" # 📁 SeargeDP/SeargeSDXL
-    "https://github.com/lgldlk/ComfyUI-PC-ding-dong" # 📁 lgldlk/ComfyUI-PC-ding-dong
-    "https://github.com/MoonGoblinDev/Civicomfy" # 📁 MoonGoblinDev/Civicomfy
-    "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # 📁 ltdrdata/ComfyUI-Impact-Pack
-    "https://github.com/yolain/ComfyUI-Easy-Use" # 📁 yolain/ComfyUI-Easy-Use
-    "https://github.com/fairy-root/Flux-Prompt-Generator" # 📁 fairy-root/Flux-Prompt-Generator
-    "https://github.com/welltop-cn/ComfyUI-TeaCache" # 📁 welltop-cn/ComfyUI-TeaCache
+    "https://github.com/AIrjen/OneButtonPrompt"
+    "https://github.com/rgthree/rgthree-comfy"
+    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts"
+    "https://github.com/SeargeDP/SeargeSDXL"
+    "https://github.com/lgldlk/ComfyUI-PC-ding-dong"
+    "https://github.com/MoonGoblinDev/Civicomfy"
+    "https://github.com/ltdrdata/ComfyUI-Impact-Pack"
+    "https://github.com/yolain/ComfyUI-Easy-Use"
+    "https://github.com/fairy-root/Flux-Prompt-Generator"
+    "https://github.com/welltop-cn/ComfyUI-TeaCache"
 )
 
 WORKFLOWS=(
@@ -34,9 +34,8 @@ WORKFLOWS=(
 )
 
 CHECKPOINT_MODELS=(
-    "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors" # stabilityai/stable-diffusion-xl-base-1.0 - sd_xl_base_1.0_0.9vae.safetensors
-    "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors" # stabilityai/stable-diffusion-xl-refiner-1.0 - sd_xl_refiner_1.0_0.9vae.safetensors
-    "https://civitai.com/api/download/models/798204" # 🎨 RealVisXL V5.0 (V5.0 Lightning (BakedVAE)) by Unknown
+    "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors"
+    "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors"
 )
 
 UNET_MODELS=(
@@ -44,14 +43,11 @@ UNET_MODELS=(
 )
 
 LORA_MODELS=(
-    "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors" # stabilityai/stable-diffusion-xl-base-1.0 - sd_xl_offset_example-lora_1.0.safetensors
-    "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors" # 🤗 Wan21_CausVid_14B_T2V_lora_rank32.safetensors
+    "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors"
 )
 
 VAE_MODELS=(
-    "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors" # madebyollin/sdxl-vae-fp16-fix - sdxl_vae.safetensors
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors" # 🤗 wan_2.1_vae.safetensors
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true" # 🤗 ae.safetensors
+    "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors"
 )
 
 ESRGAN_MODELS=(
@@ -59,42 +55,33 @@ ESRGAN_MODELS=(
 )
 
 UPSCALE_MODELS=(
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth" # 🤗 4x-UltraSharp.pth
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth" # 🤗 4x_NMKD-Siax_200k.pth
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth" # 🤗 4x_Nickelback_70000G.pth
-    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth" # 🤗 1x-ITF-SkinDiffDetail-Lite-v1.pth
+    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth"
+    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth"
+    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth"
+    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth"
 )
 
 CONTROLNET_MODELS=(
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors" # stabilityai/control-lora - control-lora-canny-rank256.safetensors
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors" # stabilityai/control-lora - control-lora-depth-rank256.safetensors
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors" # stabilityai/control-lora - control-lora-recolor-rank256.safetensors
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors" # stabilityai/control-lora - control-lora-sketch-rank256.safetensors
+    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors"
+    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors"
+    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors"
+    "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
 )
 
 ANNOTATOR_MODELS=(
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth" # lllyasviel/Annotators
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth" # lllyasviel/Annotators
+
 )
 
 CLIP_VISION_MODELS=(
-    "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors" # stabilityai/control-lora - clip_vision_g.safetensors
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true" # 🤗 clip_vision_h.safetensors
+    "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
 )
 
 TEXT_ENCODER_MODELS=(
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true" # 🤗 umt5_xxl_fp8_e4m3fn_scaled.safetensors
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors" # 🤗 umt5_xxl_fp16.safetensors
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors?download=true" # 🤗 t5xxl_fp8_e4m3fn_scaled.safetensors
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_l_hidream.safetensors?download=true" # 🤗 clip_l_hidream.safetensors
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_g_hidream.safetensors?download=true" # 🤗 clip_g_hidream.safetensors
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/llama_3.1_8b_instruct_fp8_scaled.safetensors" # 🤗 llama_3.1_8b_instruct_fp8_scaled.safetensors
+
 )
 
 DIFFUSION_MODELS=(
-    "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true" # 🤗 hidream_i1_full_fp8.safetensors
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors" # 🤗 wan2.1_t2v_14B_fp16.safetensors
-    "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true" # 🤗 wan2.1_i2v_480p_14B_fp16.safetensors
+
 )
 
 

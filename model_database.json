@@ -67,7 +67,7 @@
     },
     {
       "url": "https://civitai.com/api/download/models/798204",
-      "checked": false,
+      "checked": true,
       "name": "\ud83c\udfa8 RealVisXL V5.0 (V5.0 Lightning (BakedVAE)) by Unknown"
     }
   ],
@@ -80,7 +80,7 @@
     },
     {
       "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 Wan21_CausVid_14B_T2V_lora_rank32.safetensors"
     }
   ],
@@ -92,12 +92,12 @@
     },
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 wan_2.1_vae.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 ae.safetensors"
     }
   ],
@@ -149,12 +149,12 @@
   "annotator_models": [
     {
       "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
-      "checked": false,
+      "checked": true,
       "name": "lllyasviel/Annotators"
     },
     {
       "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth",
-      "checked": false,
+      "checked": true,
       "name": "lllyasviel/Annotators"
     }
   ],
@@ -166,56 +166,56 @@
     },
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 clip_vision_h.safetensors"
     }
   ],
   "text_encoder_models": [
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 umt5_xxl_fp8_e4m3fn_scaled.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 umt5_xxl_fp16.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 t5xxl_fp8_e4m3fn_scaled.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_l_hidream.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 clip_l_hidream.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_g_hidream.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 clip_g_hidream.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/llama_3.1_8b_instruct_fp8_scaled.safetensors",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 llama_3.1_8b_instruct_fp8_scaled.safetensors"
     }
   ],
   "diffusion_models": [
     {
       "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 hidream_i1_full_fp8.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 wan2.1_t2v_14B_fp16.safetensors"
     },
     {
       "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true",
-      "checked": false,
+      "checked": true,
       "name": "\ud83e\udd17 wan2.1_i2v_480p_14B_fp16.safetensors"
     }
   ],

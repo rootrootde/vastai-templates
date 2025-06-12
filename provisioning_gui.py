@@ -89,23 +89,17 @@ class ProvisioningGUI(QMainWindow):
         header_layout.addStretch()
         
         # Main action buttons
-        self.load_btn = QPushButton("📂 Load Script")
-        self.load_btn.setToolTip("Load a .sh script and check matching models in the database")
+        self.load_btn = QPushButton("📂 Load Preset")
+        self.load_btn.setToolTip("Load a .sh preset file and check matching models in the database")
         self.load_btn.clicked.connect(self.load_script)
         
-        self.save_btn = QPushButton("💾 Save Script")
-        self.save_btn.setToolTip("Generate and save script with checked models")
+        self.save_btn = QPushButton("💾 Save Preset")
+        self.save_btn.setToolTip("Save current selection as a .sh preset file")
         self.save_btn.clicked.connect(self.save_script)
         
         self.upload_btn = QPushButton("🚀 Upload to Git")
         self.upload_btn.setToolTip("Save script as default.sh and commit to git")
         self.upload_btn.clicked.connect(self.upload_to_git)
-        
-        # Presets button with dropdown menu
-        self.presets_btn = QPushButton("📋 Presets ▼")
-        self.presets_btn.setToolTip("Load saved preset configurations")
-        self.presets_menu = QMenu()
-        self.presets_btn.setMenu(self.presets_menu)
         
         # Clear all button
         self.clear_btn = QPushButton("🗑️ Clear All")
@@ -120,7 +114,6 @@ class ProvisioningGUI(QMainWindow):
         header_layout.addWidget(self.load_btn)
         header_layout.addWidget(self.save_btn)
         header_layout.addWidget(self.upload_btn)
-        header_layout.addWidget(self.presets_btn)
         header_layout.addWidget(self.clear_btn)
         header_layout.addWidget(self.refresh_btn)
         
@@ -225,9 +218,7 @@ class ProvisioningGUI(QMainWindow):
     def _load_initial_data(self):
         """Load initial data and update UI"""
         self.data_manager.load_database()
-        self.data_manager.load_presets()
         self.category_manager.refresh_ui_from_data()
-        self._update_presets_menu()
         self._update_preview()
     
     def _open_search_dialog(self, model_type):
@@ -271,10 +262,10 @@ class ProvisioningGUI(QMainWindow):
             self.preview_text.setPlainText(f"Error: {e}")
     
     def load_script(self):
-        """Load a provisioning script"""
+        """Load a provisioning script preset"""
         filename, _ = QFileDialog.getOpenFileName(
             self,
-            "Load Provisioning Script",
+            "Load Preset",
             "",
             "Shell Scripts (*.sh);;All Files (*)"
         )
@@ -288,11 +279,11 @@ class ProvisioningGUI(QMainWindow):
                 self.data_manager.save_database()
     
     def save_script(self):
-        """Save the generated script"""
+        """Save the generated script preset"""
         filename, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Provisioning Script",
-            "provisioning.sh",
+            "Save Preset",
+            "preset.sh",
             "Shell Scripts (*.sh);;All Files (*)"
         )
         
@@ -308,7 +299,7 @@ class ProvisioningGUI(QMainWindow):
                 # Make executable
                 os.chmod(filename, 0o755)
                 
-                QMessageBox.information(self, "Success", f"Script saved to {filename}")
+                QMessageBox.information(self, "Success", f"Preset saved to {filename}")
             except FileNotFoundError as e:
                 QMessageBox.critical(self, "Error", str(e))
     
@@ -327,121 +318,6 @@ class ProvisioningGUI(QMainWindow):
             self._update_preview()
             self.data_manager.save_database()
     
-    def _update_presets_menu(self):
-        """Update the presets dropdown menu"""
-        self.presets_menu.clear()
-        
-        # Add "Save Current as Preset" option
-        save_action = self.presets_menu.addAction("💾 Save Current as Preset...")
-        save_action.triggered.connect(self._save_current_as_preset)
-        
-        self.presets_menu.addSeparator()
-        
-        # Add existing presets
-        if self.data_manager.presets:
-            for preset_name in sorted(self.data_manager.presets.keys()):
-                preset_action = self.presets_menu.addAction(preset_name)
-                preset_action.triggered.connect(
-                    lambda checked=False, name=preset_name: self._load_preset(name)
-                )
-            
-            self.presets_menu.addSeparator()
-            
-            # Add delete preset submenu
-            delete_menu = self.presets_menu.addMenu("🗑️ Delete Preset")
-            for preset_name in sorted(self.data_manager.presets.keys()):
-                delete_action = delete_menu.addAction(preset_name)
-                delete_action.triggered.connect(
-                    lambda checked=False, name=preset_name: self._delete_preset(name)
-                )
-        else:
-            no_presets_action = self.presets_menu.addAction("(No presets saved)")
-            no_presets_action.setEnabled(False)
-    
-    def _save_current_as_preset(self):
-        """Save the current configuration as a preset"""
-        preset_name, ok = QInputDialog.getText(
-            self,
-            "Save Preset",
-            "Enter preset name:",
-            text=""
-        )
-        
-        if not ok or not preset_name.strip():
-            return
-        
-        preset_name = preset_name.strip()
-        
-        # Check if preset already exists
-        overwrite = False
-        if preset_name in self.data_manager.presets:
-            reply = QMessageBox.question(
-                self,
-                "Overwrite Preset",
-                f"Preset '{preset_name}' already exists. Overwrite?",
-                QMessageBox.Yes | QMessageBox.No
-            )
-            if reply != QMessageBox.Yes:
-                return
-            overwrite = True
-        
-        # Force sync UI state to database before creating preset
-        self.category_manager.sync_ui_to_database()
-        
-        if self.data_manager.create_preset(preset_name, overwrite):
-            self.data_manager.save_presets()
-            self._update_presets_menu()
-            
-            QMessageBox.information(
-                self,
-                "Preset Saved",
-                f"Preset '{preset_name}' saved successfully!"
-            )
-    
-    def _load_preset(self, preset_name):
-        """Load a preset configuration"""
-        reply = QMessageBox.question(
-            self,
-            "Load Preset",
-            f"Loading preset '{preset_name}' will replace your current configuration. Continue?",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        
-        if reply != QMessageBox.Yes:
-            return
-        
-        if self.data_manager.load_preset(preset_name):
-            self.category_manager.refresh_ui_from_data()
-            self._update_preview()
-            self.data_manager.save_database()
-            
-            QMessageBox.information(
-                self,
-                "Preset Loaded",
-                f"Preset '{preset_name}' loaded successfully!"
-            )
-    
-    def _delete_preset(self, preset_name):
-        """Delete a preset"""
-        reply = QMessageBox.question(
-            self,
-            "Delete Preset",
-            f"Are you sure you want to delete preset '{preset_name}'?",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        
-        if reply != QMessageBox.Yes:
-            return
-        
-        if self.data_manager.delete_preset(preset_name):
-            self.data_manager.save_presets()
-            self._update_presets_menu()
-            
-            QMessageBox.information(
-                self,
-                "Preset Deleted",
-                f"Preset '{preset_name}' deleted successfully!"
-            )
     
     def upload_to_git(self):
         """Save and commit all changes to git"""

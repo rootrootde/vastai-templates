@@ -2,7 +2,7 @@
 """
 Data Management Module
 
-Handles database operations, presets, and data persistence for the provisioning GUI.
+Handles database operations and data persistence for the provisioning GUI.
 """
 
 import json
@@ -144,11 +144,9 @@ def _extract_filename_from_url(url):
 class DataManager:
     """Manages data storage, loading, and persistence"""
     
-    def __init__(self, database_file='model_database.json', presets_file='presets.json'):
+    def __init__(self, database_file='model_database.json'):
         self.database_file = database_file
-        self.presets_file = presets_file
         self.data = self._get_default_data()
-        self.presets = {}
     
     def _get_default_data(self):
         """Get the default data structure"""
@@ -214,23 +212,6 @@ class DataManager:
         except Exception as e:
             print(f"Error saving database: {e}")
     
-    def load_presets(self):
-        """Load presets from JSON file"""
-        try:
-            if os.path.exists(self.presets_file):
-                with open(self.presets_file, 'r') as f:
-                    self.presets = json.load(f)
-        except Exception as e:
-            print(f"Error loading presets: {e}")
-        return self.presets
-    
-    def save_presets(self):
-        """Save presets to JSON file"""
-        try:
-            with open(self.presets_file, 'w') as f:
-                json.dump(self.presets, f, indent=2)
-        except Exception as e:
-            print(f"Error saving presets: {e}")
     
     def add_item(self, category, url, checked=True):
         """Add an item to a category"""
@@ -311,72 +292,6 @@ class DataManager:
         except (ValueError, TypeError):
             return False
     
-    def create_preset(self, name, overwrite=False):
-        """Create a preset from current checked items"""
-        if name in self.presets and not overwrite:
-            return False
-            
-        # Save only checked items
-        preset_data = {}
-        total_checked = 0
-        for key in self.data:
-            if key == 'max_parallel_downloads':
-                preset_data[key] = self.data[key]
-            else:
-                # Only save checked items
-                checked_items = [item['url'] for item in self.data[key] if item.get('checked', True)]
-                preset_data[key] = checked_items
-                total_checked += len(checked_items)
-        
-        self.presets[name] = preset_data
-        return True
-    
-    def load_preset(self, name):
-        """Load a preset configuration"""
-        if name not in self.presets:
-            return False
-            
-        preset_data = self.presets[name]
-        
-        # First, uncheck all items in the database
-        for key in self.data:
-            if key == 'max_parallel_downloads':
-                self.data[key] = preset_data.get(key, 4)
-            else:
-                for item in self.data[key]:
-                    item['checked'] = False
-        
-        # Then check items that are in the preset
-        for key, urls in preset_data.items():
-            if key != 'max_parallel_downloads' and isinstance(urls, list):
-                for url in urls:
-                    # Find existing item in database
-                    existing_item = None
-                    for item in self.data[key]:
-                        if item['url'] == url:
-                            existing_item = item
-                            break
-                    
-                    if existing_item:
-                        # Mark existing item as checked
-                        existing_item['checked'] = True
-                    else:
-                        # Add new item to database if it doesn't exist
-                        model_name = fetch_model_metadata(url)
-                        self.data[key].append({
-                            'url': url,
-                            'checked': True,
-                            'name': model_name
-                        })
-        
-        return True
-    
-    def delete_preset(self, name):
-        """Delete a preset"""
-        if name in self.presets:
-            del self.presets[name]
-            return True
-        return False
     
     def refresh_all_model_names(self, progress_callback=None):
         """Refresh all model names from their sources"""

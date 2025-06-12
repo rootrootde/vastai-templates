@@ -49,9 +49,9 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 - **Smart Model Names**: Automatically fetches model metadata from CivitAI and Hugging Face
 - **Global Database**: Persistent model database that grows over time
 - **Platform Indicators**: Visual emojis to identify model sources (🎨 CivitAI, 🤗 Hugging Face, 📁 GitHub)
-- **Preset System**: Save and load model configurations without losing database entries
+- **Script-Based Presets**: Use .sh files directly as presets - no separate preset system needed
 - **Improved Workflow**: Load scripts only check/uncheck models, don't replace database
-- **Fixed State Persistence**: Checkbox states now properly save to database and presets
+- **Fixed State Persistence**: Checkbox states now properly save to database
 - **Refresh Model Names**: One-click refresh of all model names from APIs
 
 ### Key Features:
@@ -72,11 +72,11 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 - **Direct URLs**: `🔗 annotator_model.pth`
 - **Unique Names**: No more confusing entries - each model shows specific filename with platform indicator
 
-#### 📋 **Enhanced Preset System**
-- Presets only check/uncheck models, don't replace database
-- **SDXL Complete Setup** preset included with 15+ professional models
-- Save custom presets for different workflows
-- Load presets without losing your model collection
+#### 📋 **Script-Based Preset System**
+- No separate preset files - use .sh scripts directly as presets
+- **Example presets** included in `/presets/` directory (sdxl-complete-setup.sh, sdxl.sh)
+- Save configurations as .sh files for easy sharing and version control
+- Load any .sh script file to apply its model selection
 
 #### 🔍 **Model Search Integration**
 - Built-in search for CivitAI and Hugging Face models
@@ -86,10 +86,9 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 ### Interface Overview:
 
 **Main Buttons:**
-- `📂 Load Script` - Load .sh script and check matching models in database
-- `💾 Save Script` - Generate script with only checked models
+- `📂 Load Preset` - Load .sh preset file and check matching models in database
+- `💾 Save Preset` - Save current selection as .sh preset file
 - `🚀 Upload to Git` - Save as default.sh and commit to repository
-- `📋 Presets ▼` - Load saved preset configurations
 - `🗑️ Clear All` - Uncheck all models in database
 - `🔄 Refresh Names` - Update model names from CivitAI and Hugging Face APIs
 
@@ -117,13 +116,13 @@ python provisioning_gui.py
 #### New Users:
 1. Launch GUI - loads global database (shows all available models)
 2. Check models you want for your setup
-3. Save script or use presets
+3. Save as .sh preset file
 
 #### Existing Users:
-1. Load existing script - only checks matching models, keeps database intact
+1. Load existing .sh preset - only checks matching models, keeps database intact
 2. Add new models - they're added to global database permanently
-3. Use presets to switch between different configurations
-4. Export scripts with only checked models
+3. Use different .sh preset files to switch between configurations
+4. Share preset files easily - they're just .sh scripts
 
 #### Advanced Features:
 - **Search Models**: Find and add models from CivitAI/Hugging Face directly
