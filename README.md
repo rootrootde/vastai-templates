@@ -30,21 +30,22 @@ No more cryptic URLs! The GUI automatically identifies models:
 - **Growing Collection**: Database expands as you add more models
 - **Smart Workflow**: Scripts only check/uncheck models, don't replace database
 
-### 📋 Enhanced Presets
-- **SDXL Complete Setup**: Professional SDXL workflow with 15+ models
-- **Custom Presets**: Save your own model configurations
-- **Non-Destructive**: Presets only change selections, keep your full database
+### 📋 Script-Based Presets
+- **No Separate Preset Files**: Use .sh scripts directly as presets
+- **Example Presets**: SDXL workflows included in `/presets/` directory
+- **Easy Sharing**: Preset files are standard shell scripts
+- **Version Control Friendly**: Track preset changes with git
 
 ## 🎮 GUI Interface
 
 ### Main Controls
 | Button | Function |
 |--------|----------|
-| 📂 Load Script | Import .sh file and check matching models |
-| 💾 Save Script | Export script with checked models |
+| 📂 Load Preset | Load .sh preset file and check matching models |
+| 💾 Save Preset | Save current selection as .sh preset file |
 | 🚀 Upload to Git | Save as default.sh and commit |
-| 📋 Presets ▼ | Load/save preset configurations |
 | 🗑️ Clear All | Uncheck all models |
+| 🔄 Refresh Names | Update model names from APIs |
 
 ### Model Categories
 - **🎯 Checkpoints**: Base models and refiners
@@ -57,10 +58,12 @@ No more cryptic URLs! The GUI automatically identifies models:
 
 ```
 ├── provisioning_gui.py      # Main GUI application
-├── default.sh               # Generated provisioning script
+├── default.sh               # Active provisioning script
 ├── template.sh             # Script template
 ├── model_database.json     # Global model database
-├── presets.json           # Saved presets
+├── presets/                # Preset script files
+│   ├── sdxl-complete-setup.sh
+│   └── sdxl.sh
 └── CLAUDE.md             # Development documentation
 ```
 
@@ -79,9 +82,9 @@ Set environment variables for private model access:
 ### Parallel Downloads
 Configure `MAX_PARALLEL_DOWNLOADS` in settings (default: 4)
 
-## 📋 Included Presets
+## 📋 Included Preset Scripts
 
-### SDXL Complete Setup
+### `presets/sdxl-complete-setup.sh`
 Professional SDXL workflow including:
 - **Base Models**: SDXL 1.0 Base + Refiner (13 GB)
 - **VAE**: Fixed SDXL VAE for fp16 (335 MB)
@@ -90,7 +93,10 @@ Professional SDXL workflow including:
 - **ControlNet**: Canny, Depth, Recolor, Sketch (3 GB)
 - **Utilities**: Annotators, CLIP Vision (3.7 GB)
 
-**Total**: ~17.8 GB download
+### `presets/sdxl.sh`
+Streamlined SDXL setup with essential models and ComfyUI nodes.
+
+**Usage**: Load any `.sh` preset file in the GUI to apply its configuration.
 
 ## 🛠️ Development
 
