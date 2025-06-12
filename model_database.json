@@ -9,27 +9,27 @@
     },
     {
       "url": "https://github.com/rgthree/rgthree-comfy",
-      "checked": false,
+      "checked": true,
       "name": "\ud83d\udcc1 rgthree/rgthree-comfy"
     },
     {
       "url": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts",
-      "checked": false,
+      "checked": true,
       "name": "\ud83d\udcc1 pythongosssss/ComfyUI-Custom-Scripts"
     },
     {
       "url": "https://github.com/SeargeDP/SeargeSDXL",
-      "checked": false,
+      "checked": true,
       "name": "\ud83d\udcc1 SeargeDP/SeargeSDXL"
     },
     {
       "url": "https://github.com/lgldlk/ComfyUI-PC-ding-dong",
-      "checked": false,
+      "checked": true,
       "name": "\ud83d\udcc1 lgldlk/ComfyUI-PC-ding-dong"
     },
     {
       "url": "https://github.com/MoonGoblinDev/Civicomfy",
-      "checked": false,
+      "checked": true,
       "name": "\ud83d\udcc1 MoonGoblinDev/Civicomfy"
     },
     {
@@ -38,9 +38,19 @@
       "name": "\ud83d\udcc1 ltdrdata/ComfyUI-Impact-Pack"
     },
     {
-      "url": "https://github.com/heshengtao/comfyui_LLM_party",
+      "url": "https://github.com/yolain/ComfyUI-Easy-Use",
       "checked": true,
-      "name": "\ud83d\udcc1 heshengtao/comfyui_LLM_party"
+      "name": "\ud83d\udcc1 yolain/ComfyUI-Easy-Use"
+    },
+    {
+      "url": "https://github.com/fairy-root/Flux-Prompt-Generator",
+      "checked": true,
+      "name": "\ud83d\udcc1 fairy-root/Flux-Prompt-Generator"
+    },
+    {
+      "url": "https://github.com/welltop-cn/ComfyUI-TeaCache",
+      "checked": true,
+      "name": "\ud83d\udcc1 welltop-cn/ComfyUI-TeaCache"
     }
   ],
   "workflows": [],
@@ -144,7 +154,7 @@
     },
     {
       "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth",
-      "checked": true,
+      "checked": false,
       "name": "lllyasviel/Annotators"
     }
   ],

@@ -199,37 +199,81 @@ class CategoryPanelManager(QObject):
                 
                 if added_item:
                     display_name = added_item.get('name') or added_item['url']
-                    self._add_list_item_with_checkbox(list_widget, display_name, True, key, item_text)
+                    self._add_list_item_with_checkbox(list_widget, display_name, True, key, item_text, block_signals=False)
         
         text_input.clear()
         self.data_changed.emit()
         self.data_manager.save_database()  # Auto-save database
     
-    def _add_list_item_with_checkbox(self, list_widget, text, checked, key, url=None):
+    def _add_list_item_with_checkbox(self, list_widget, text, checked, key, url=None, block_signals=False):
         """Add a list item with a checkbox"""
         item = QListWidgetItem()
         checkbox = QCheckBox(text)
-        checkbox.setChecked(checked)
-        
-        # Use URL for tracking if provided, otherwise use text
-        tracking_key = url if url else text
-        checkbox.stateChanged.connect(
-            lambda state: self._update_item_checked_state(key, tracking_key, state == Qt.Checked)
-        )
         
         # Store the URL in the checkbox for later reference
-        if url:
-            checkbox.setProperty("url", url)
+        tracking_key = url if url else text
+        checkbox.setProperty("url", tracking_key)
+        checkbox.setProperty("category", key)
+        
+        # Connect signal FIRST, before setting state
+        checkbox.stateChanged.connect(self._on_checkbox_state_changed)
+        
+        # Now set the checked state
+        if block_signals:
+            checkbox.blockSignals(True)
+        checkbox.setChecked(checked)
+        if block_signals:
+            checkbox.blockSignals(False)
         
         list_widget.addItem(item)
         list_widget.setItemWidget(item, checkbox)
         item.setSizeHint(checkbox.sizeHint())
     
+    def _on_checkbox_state_changed(self, state):
+        """Handle checkbox state change"""
+        checkbox = self.sender()
+        if not checkbox:
+            return
+            
+        url = checkbox.property("url")
+        category = checkbox.property("category")
+        checked = (state == Qt.Checked)
+        
+        if not url or not category:
+            return
+            
+        try:
+            self._update_item_checked_state(category, url, checked)
+        except Exception as e:
+            print(f"ERROR: Exception in _on_checkbox_state_changed: {e}")
+            import traceback
+            traceback.print_exc()
+    
     def _update_item_checked_state(self, key, url, checked):
         """Update the checked state of an item in the data"""
-        self.data_manager.update_item_checked_state(key, url, checked)
-        self.data_changed.emit()
-        self.data_manager.save_database()  # Auto-save when checkbox state changes
+        success = self.data_manager.update_item_checked_state(key, url, checked)
+        if success:
+            self.data_changed.emit()
+            self.data_manager.save_database()  # Auto-save when checkbox state changes
+    
+    def sync_ui_to_database(self):
+        """Force synchronize all checkbox states from UI to database"""
+        for key, list_widget in self.list_widgets.items():
+            if key == 'max_parallel_downloads':
+                continue
+                
+            # Get all items from UI
+            for i in range(list_widget.count()):
+                item = list_widget.item(i)
+                checkbox = list_widget.itemWidget(item)
+                if checkbox and isinstance(checkbox, QCheckBox):
+                    url = checkbox.property("url")
+                    if url:
+                        checked = checkbox.isChecked()
+                        self.data_manager.update_item_checked_state(key, url, checked)
+        
+        # Save after all updates
+        self.data_manager.save_database()
     
     def _set_all_checked(self, key, list_widget, checked_state):
         """Set all items in a category to checked or unchecked"""
@@ -244,6 +288,7 @@ class CategoryPanelManager(QObject):
                 checkbox.setChecked(checked_state)
         
         self.data_changed.emit()
+        self.data_manager.save_database()  # Auto-save after bulk checkbox changes
     
     def _remove_items(self, key, list_widget):
         """Remove selected items from the category"""
@@ -279,7 +324,7 @@ class CategoryPanelManager(QObject):
             
             if added_item:
                 display_name = added_item.get('name') or added_item['url']
-                self._add_list_item_with_checkbox(list_widget, display_name, True, model_type, url)
+                self._add_list_item_with_checkbox(list_widget, display_name, True, model_type, url, block_signals=False)
                 self.data_changed.emit()
                 self.data_manager.save_database()  # Auto-save after adding from search
                 return True
@@ -299,6 +344,7 @@ class CategoryPanelManager(QObject):
                     display_name = item.get('name') or item['url']
                     if not item.get('name'):
                         # Try to fetch name if not stored (for backward compatibility)
+                        # Note: This could be slow, consider doing this asynchronously in the future
                         from data_manager import fetch_model_metadata
                         fetched_name = fetch_model_metadata(item['url'])
                         if fetched_name:
@@ -310,7 +356,8 @@ class CategoryPanelManager(QObject):
                         display_name,
                         item.get('checked', True),
                         key,
-                        item['url']
+                        item['url'],
+                        block_signals=True  # Block signals during UI refresh
                     )
         
         # Update parallel downloads setting

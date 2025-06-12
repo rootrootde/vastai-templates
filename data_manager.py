@@ -265,11 +265,14 @@ class DataManager:
         """Update the checked state of an item"""
         if category not in self.data or category == 'max_parallel_downloads':
             return False
-            
-        for item in self.data[category]:
+        
+        
+        for i, item in enumerate(self.data[category]):
             if item['url'] == url:
+                old_state = item.get('checked', True)
                 item['checked'] = checked
                 return True
+        
         return False
     
     def set_all_checked(self, category, checked_state):
@@ -315,12 +318,15 @@ class DataManager:
             
         # Save only checked items
         preset_data = {}
+        total_checked = 0
         for key in self.data:
             if key == 'max_parallel_downloads':
                 preset_data[key] = self.data[key]
             else:
                 # Only save checked items
-                preset_data[key] = [item['url'] for item in self.data[key] if item.get('checked', True)]
+                checked_items = [item['url'] for item in self.data[key] if item.get('checked', True)]
+                preset_data[key] = checked_items
+                total_checked += len(checked_items)
         
         self.presets[name] = preset_data
         return True
@@ -371,3 +377,43 @@ class DataManager:
             del self.presets[name]
             return True
         return False
+    
+    def refresh_all_model_names(self, progress_callback=None):
+        """Refresh all model names from their sources"""
+        total_items = 0
+        refreshed = 0
+        
+        # Count total items
+        for key in self.data:
+            if key != 'max_parallel_downloads':
+                total_items += len(self.data[key])
+        
+        # Refresh each category
+        for key in self.data:
+            if key == 'max_parallel_downloads':
+                continue
+                
+            for item in self.data[key]:
+                # Always try to refresh if:
+                # 1. No name exists
+                # 2. Name is same as URL
+                # 3. Name contains platform emoji (indicating it was auto-fetched)
+                should_refresh = (
+                    not item.get('name') or 
+                    item['name'] == item['url'] or
+                    any(emoji in item.get('name', '') for emoji in ['🎨', '🤗', '📁', '💾', '☁️', '📦', '🔗'])
+                )
+                
+                if should_refresh:
+                    # Fetch new name
+                    new_name = fetch_model_metadata(item['url'])
+                    if new_name and new_name != item['url']:
+                        item['name'] = new_name
+                    
+                refreshed += 1
+                if progress_callback:
+                    progress_callback(refreshed, total_items)
+        
+        # Save the updated database
+        self.save_database()
+        return refreshed, total_items

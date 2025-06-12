@@ -1,50 +1,4 @@
 {
-  "all": {
-    "apt_packages": [],
-    "pip_packages": [],
-    "nodes": [
-      "https://github.com/AIrjen/OneButtonPrompt",
-      "https://github.com/rgthree/rgthree-comfy",
-      "https://github.com/pythongosssss/ComfyUI-Custom-Scripts",
-      "https://github.com/SeargeDP/SeargeSDXL",
-      "https://github.com/lgldlk/ComfyUI-PC-ding-dong",
-      "https://github.com/MoonGoblinDev/Civicomfy"
-    ],
-    "workflows": [],
-    "checkpoint_models": [
-      "https://civitai.com/api/download/models/798204"
-    ],
-    "unet_models": [],
-    "lora_models": [
-      "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors"
-    ],
-    "vae_models": [
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true"
-    ],
-    "esrgan_models": [],
-    "upscale_models": [],
-    "controlnet_models": [],
-    "annotator_models": [],
-    "clip_vision_models": [
-      "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors",
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true"
-    ],
-    "text_encoder_models": [
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors?download=true",
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_l_hidream.safetensors?download=true",
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_g_hidream.safetensors?download=true",
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/llama_3.1_8b_instruct_fp8_scaled.safetensors"
-    ],
-    "diffusion_models": [
-      "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true",
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors",
-      "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true"
-    ],
-    "max_parallel_downloads": 4
-  },
   "SDXL Complete Setup": {
     "checkpoint_models": [
       "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors",
@@ -85,11 +39,20 @@
     "diffusion_models": [],
     "max_parallel_downloads": 4
   },
-  "SeargeSDXL": {
+  "sdxl": {
     "apt_packages": [],
     "pip_packages": [],
     "nodes": [
-      "https://github.com/ltdrdata/ComfyUI-Impact-Pack"
+      "https://github.com/AIrjen/OneButtonPrompt",
+      "https://github.com/rgthree/rgthree-comfy",
+      "https://github.com/pythongosssss/ComfyUI-Custom-Scripts",
+      "https://github.com/SeargeDP/SeargeSDXL",
+      "https://github.com/lgldlk/ComfyUI-PC-ding-dong",
+      "https://github.com/MoonGoblinDev/Civicomfy",
+      "https://github.com/ltdrdata/ComfyUI-Impact-Pack",
+      "https://github.com/yolain/ComfyUI-Easy-Use",
+      "https://github.com/fairy-root/Flux-Prompt-Generator",
+      "https://github.com/welltop-cn/ComfyUI-TeaCache"
     ],
     "workflows": [],
     "checkpoint_models": [
@@ -116,9 +79,7 @@
       "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors",
       "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors"
     ],
-    "annotator_models": [
-      "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth"
-    ],
+    "annotator_models": [],
     "clip_vision_models": [
       "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors"
     ],

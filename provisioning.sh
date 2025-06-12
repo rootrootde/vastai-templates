@@ -18,6 +18,11 @@ PIP_PACKAGES=(
 
 NODES=(
     "https://github.com/AIrjen/OneButtonPrompt" # 📁 AIrjen/OneButtonPrompt
+    "https://github.com/rgthree/rgthree-comfy" # 📁 rgthree/rgthree-comfy
+    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts" # 📁 pythongosssss/ComfyUI-Custom-Scripts
+    "https://github.com/SeargeDP/SeargeSDXL" # 📁 SeargeDP/SeargeSDXL
+    "https://github.com/lgldlk/ComfyUI-PC-ding-dong" # 📁 lgldlk/ComfyUI-PC-ding-dong
+    "https://github.com/MoonGoblinDev/Civicomfy" # 📁 MoonGoblinDev/Civicomfy
     "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # 📁 ltdrdata/ComfyUI-Impact-Pack
     "https://github.com/heshengtao/comfyui_LLM_party" # 📁 heshengtao/comfyui_LLM_party
 )
@@ -62,7 +67,7 @@ CONTROLNET_MODELS=(
 )
 
 ANNOTATOR_MODELS=(
-    "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth" # lllyasviel/Annotators
+
 )
 
 CLIP_VISION_MODELS=(

@@ -45,12 +45,14 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 - **`script_utils.py`** - Script generation and parsing utilities
 - **`category_panels.py`** - UI panel management and interactions
 
-### Status: ✅ Enhanced with Smart Features
+### Status: ✅ Production Ready with Advanced Features
 - **Smart Model Names**: Automatically fetches model metadata from CivitAI and Hugging Face
 - **Global Database**: Persistent model database that grows over time
 - **Platform Indicators**: Visual emojis to identify model sources (🎨 CivitAI, 🤗 Hugging Face, 📁 GitHub)
 - **Preset System**: Save and load model configurations without losing database entries
 - **Improved Workflow**: Load scripts only check/uncheck models, don't replace database
+- **Fixed State Persistence**: Checkbox states now properly save to database and presets
+- **Refresh Model Names**: One-click refresh of all model names from APIs
 
 ### Key Features:
 
@@ -89,6 +91,7 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 - `🚀 Upload to Git` - Save as default.sh and commit to repository
 - `📋 Presets ▼` - Load saved preset configurations
 - `🗑️ Clear All` - Uncheck all models in database
+- `🔄 Refresh Names` - Update model names from CivitAI and Hugging Face APIs
 
 **Categories:**
 - ⚙️ Settings (parallel downloads)
@@ -127,6 +130,8 @@ python provisioning_gui.py
 - **Batch Operations**: Check/uncheck all models in a category
 - **Model Comments**: Generated scripts include human-readable model names as comments
 - **Auto-Save**: Database automatically saves as you make changes
+- **State Synchronization**: UI state is properly synchronized with database before saves
+- **Refresh Model Names**: Batch update all model names with progress tracking
 
 ### Generated Script Format:
 

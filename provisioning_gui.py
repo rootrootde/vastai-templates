@@ -27,7 +27,8 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox, 
-    QSplitter, QGroupBox, QStackedWidget, QListWidgetItem, QMenu, QInputDialog
+    QSplitter, QGroupBox, QStackedWidget, QListWidgetItem, QMenu, QInputDialog,
+    QProgressDialog
 )
 from PySide6.QtCore import Qt
 
@@ -111,11 +112,17 @@ class ProvisioningGUI(QMainWindow):
         self.clear_btn.setToolTip("Uncheck all models in the database")
         self.clear_btn.clicked.connect(self.clear_all_selections)
         
+        # Refresh model names button
+        self.refresh_btn = QPushButton("🔄 Refresh Names")
+        self.refresh_btn.setToolTip("Refresh model names from CivitAI and Hugging Face")
+        self.refresh_btn.clicked.connect(self.refresh_model_names)
+        
         header_layout.addWidget(self.load_btn)
         header_layout.addWidget(self.save_btn)
         header_layout.addWidget(self.upload_btn)
         header_layout.addWidget(self.presets_btn)
         header_layout.addWidget(self.clear_btn)
+        header_layout.addWidget(self.refresh_btn)
         
         parent_layout.addLayout(header_layout)
         
@@ -291,6 +298,9 @@ class ProvisioningGUI(QMainWindow):
         
         if filename:
             try:
+                # Force sync UI state to database before generating script
+                self.category_manager.sync_ui_to_database()
+                
                 script = self.script_generator.generate_script(self.data_manager.data)
                 with open(filename, 'w') as f:
                     f.write(script)
@@ -375,6 +385,9 @@ class ProvisioningGUI(QMainWindow):
                 return
             overwrite = True
         
+        # Force sync UI state to database before creating preset
+        self.category_manager.sync_ui_to_database()
+        
         if self.data_manager.create_preset(preset_name, overwrite):
             self.data_manager.save_presets()
             self._update_presets_menu()
@@ -451,6 +464,9 @@ class ProvisioningGUI(QMainWindow):
             return
             
         try:
+            # Force sync UI state to database before generating script
+            self.category_manager.sync_ui_to_database()
+            
             # Save the script to default.sh
             script = self.script_generator.generate_script(self.data_manager.data)
             with open('default.sh', 'w') as f:
@@ -487,6 +503,67 @@ class ProvisioningGUI(QMainWindow):
             )
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Error", str(e))
+    
+    def refresh_model_names(self):
+        """Refresh model names from CivitAI and Hugging Face"""
+        reply = QMessageBox.question(
+            self,
+            "Refresh Model Names",
+            "This will fetch the latest model names from CivitAI and Hugging Face.\n\n"
+            "This may take a while if you have many models.\n\n"
+            "Continue?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply != QMessageBox.Yes:
+            return
+        
+        # Create progress dialog
+        progress = QProgressDialog("Refreshing model names...", "Cancel", 0, 100, self)
+        progress.setWindowModality(Qt.WindowModal)
+        progress.setWindowTitle("Refreshing")
+        progress.show()
+        
+        # Define progress callback
+        def update_progress(current, total):
+            if progress.wasCanceled():
+                return False
+            progress.setValue(int((current / total) * 100))
+            progress.setLabelText(f"Refreshing model names... ({current}/{total})")
+            QApplication.processEvents()
+            return True
+        
+        try:
+            # Refresh model names
+            refreshed, total = self.data_manager.refresh_all_model_names(
+                progress_callback=lambda c, t: update_progress(c, t) if not progress.wasCanceled() else False
+            )
+            
+            progress.close()
+            
+            if refreshed == total:
+                # Refresh the UI to show new names
+                self.category_manager.refresh_ui_from_data()
+                
+                QMessageBox.information(
+                    self,
+                    "Refresh Complete",
+                    f"Successfully refreshed {refreshed} model names!"
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Refresh Cancelled",
+                    f"Refresh cancelled. Updated {refreshed} out of {total} models."
+                )
+                
+        except Exception as e:
+            progress.close()
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error refreshing model names: {str(e)}"
+            )
 
 
 def main():
