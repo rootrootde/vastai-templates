@@ -51,6 +51,16 @@
       "url": "https://github.com/welltop-cn/ComfyUI-TeaCache",
       "checked": true,
       "name": "\ud83d\udcc1 welltop-cn/ComfyUI-TeaCache"
+    },
+    {
+      "url": "https://github.com/cubiq/PuLID_ComfyUI",
+      "checked": true,
+      "name": "\ud83d\udcc1 cubiq/PuLID_ComfyUI"
+    },
+    {
+      "url": "https://github.com/shiimizu/ComfyUI-TiledDiffusion",
+      "checked": false,
+      "name": "\ud83d\udcc1 shiimizu/ComfyUI-TiledDiffusion"
     }
   ],
   "workflows": [],
