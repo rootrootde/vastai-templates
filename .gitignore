@@ -196,3 +196,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 presets/all.sh
+fbs-1.2.7.tar.gz
