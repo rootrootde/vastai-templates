@@ -1,0 +1,233 @@
+{
+  "apt_packages": [],
+  "pip_packages": [],
+  "nodes": [
+    {
+      "url": "https://github.com/AIrjen/OneButtonPrompt",
+      "checked": true,
+      "name": "\ud83d\udcc1 AIrjen/OneButtonPrompt"
+    },
+    {
+      "url": "https://github.com/rgthree/rgthree-comfy",
+      "checked": true,
+      "name": "\ud83d\udcc1 rgthree/rgthree-comfy"
+    },
+    {
+      "url": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts",
+      "checked": true,
+      "name": "\ud83d\udcc1 pythongosssss/ComfyUI-Custom-Scripts"
+    },
+    {
+      "url": "https://github.com/SeargeDP/SeargeSDXL",
+      "checked": true,
+      "name": "\ud83d\udcc1 SeargeDP/SeargeSDXL"
+    },
+    {
+      "url": "https://github.com/lgldlk/ComfyUI-PC-ding-dong",
+      "checked": true,
+      "name": "\ud83d\udcc1 lgldlk/ComfyUI-PC-ding-dong"
+    },
+    {
+      "url": "https://github.com/MoonGoblinDev/Civicomfy",
+      "checked": true,
+      "name": "\ud83d\udcc1 MoonGoblinDev/Civicomfy"
+    },
+    {
+      "url": "https://github.com/ltdrdata/ComfyUI-Impact-Pack",
+      "checked": true,
+      "name": "\ud83d\udcc1 ltdrdata/ComfyUI-Impact-Pack"
+    },
+    {
+      "url": "https://github.com/yolain/ComfyUI-Easy-Use",
+      "checked": true,
+      "name": "\ud83d\udcc1 yolain/ComfyUI-Easy-Use"
+    },
+    {
+      "url": "https://github.com/fairy-root/Flux-Prompt-Generator",
+      "checked": true,
+      "name": "\ud83d\udcc1 fairy-root/Flux-Prompt-Generator"
+    },
+    {
+      "url": "https://github.com/welltop-cn/ComfyUI-TeaCache",
+      "checked": true,
+      "name": "\ud83d\udcc1 welltop-cn/ComfyUI-TeaCache"
+    },
+    {
+      "url": "https://github.com/cubiq/PuLID_ComfyUI",
+      "checked": true,
+      "name": "\ud83d\udcc1 cubiq/PuLID_ComfyUI"
+    },
+    {
+      "url": "https://github.com/shiimizu/ComfyUI-TiledDiffusion",
+      "checked": false,
+      "name": "\ud83d\udcc1 shiimizu/ComfyUI-TiledDiffusion"
+    }
+  ],
+  "workflows": [],
+  "checkpoint_models": [
+    {
+      "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors",
+      "checked": true,
+      "name": "stabilityai/stable-diffusion-xl-base-1.0 - sd_xl_base_1.0_0.9vae.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors",
+      "checked": true,
+      "name": "stabilityai/stable-diffusion-xl-refiner-1.0 - sd_xl_refiner_1.0_0.9vae.safetensors"
+    },
+    {
+      "url": "https://civitai.com/api/download/models/798204",
+      "checked": true,
+      "name": "\ud83c\udfa8 RealVisXL V5.0 (V5.0 Lightning (BakedVAE)) by Unknown"
+    }
+  ],
+  "unet_models": [],
+  "lora_models": [
+    {
+      "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors",
+      "checked": true,
+      "name": "stabilityai/stable-diffusion-xl-base-1.0 - sd_xl_offset_example-lora_1.0.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+      "checked": true,
+      "name": "\ud83e\udd17 Wan21_CausVid_14B_T2V_lora_rank32.safetensors"
+    }
+  ],
+  "vae_models": [
+    {
+      "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors",
+      "checked": true,
+      "name": "madebyollin/sdxl-vae-fp16-fix - sdxl_vae.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+      "checked": true,
+      "name": "\ud83e\udd17 wan_2.1_vae.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/vae/ae.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 ae.safetensors"
+    }
+  ],
+  "esrgan_models": [],
+  "upscale_models": [
+    {
+      "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x-UltraSharp.pth",
+      "checked": true,
+      "name": "\ud83e\udd17 4x-UltraSharp.pth"
+    },
+    {
+      "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Siax_200k.pth",
+      "checked": true,
+      "name": "\ud83e\udd17 4x_NMKD-Siax_200k.pth"
+    },
+    {
+      "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_Nickelback_70000G.pth",
+      "checked": true,
+      "name": "\ud83e\udd17 4x_Nickelback_70000G.pth"
+    },
+    {
+      "url": "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/1x-ITF-SkinDiffDetail-Lite-v1.pth",
+      "checked": true,
+      "name": "\ud83e\udd17 1x-ITF-SkinDiffDetail-Lite-v1.pth"
+    }
+  ],
+  "controlnet_models": [
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-canny-rank256.safetensors",
+      "checked": true,
+      "name": "stabilityai/control-lora - control-lora-canny-rank256.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-depth-rank256.safetensors",
+      "checked": true,
+      "name": "stabilityai/control-lora - control-lora-depth-rank256.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-recolor-rank256.safetensors",
+      "checked": true,
+      "name": "stabilityai/control-lora - control-lora-recolor-rank256.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/control-LoRAs-rank256/control-lora-sketch-rank256.safetensors",
+      "checked": true,
+      "name": "stabilityai/control-lora - control-lora-sketch-rank256.safetensors"
+    }
+  ],
+  "annotator_models": [
+    {
+      "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth",
+      "checked": true,
+      "name": "lllyasviel/Annotators"
+    },
+    {
+      "url": "https://huggingface.co/lllyasviel/Annotators/resolve/main/res101.pth",
+      "checked": true,
+      "name": "lllyasviel/Annotators"
+    }
+  ],
+  "clip_vision_models": [
+    {
+      "url": "https://huggingface.co/stabilityai/control-lora/resolve/main/revision/clip_vision_g.safetensors",
+      "checked": true,
+      "name": "stabilityai/control-lora - clip_vision_g.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 clip_vision_h.safetensors"
+    }
+  ],
+  "text_encoder_models": [
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
+      "checked": true,
+      "name": "\ud83e\udd17 umt5_xxl_fp16.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/t5xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 t5xxl_fp8_e4m3fn_scaled.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_l_hidream.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 clip_l_hidream.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/clip_g_hidream.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 clip_g_hidream.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/text_encoders/llama_3.1_8b_instruct_fp8_scaled.safetensors",
+      "checked": true,
+      "name": "\ud83e\udd17 llama_3.1_8b_instruct_fp8_scaled.safetensors"
+    }
+  ],
+  "diffusion_models": [
+    {
+      "url": "https://huggingface.co/Comfy-Org/HiDream-I1_ComfyUI/resolve/main/split_files/diffusion_models/hidream_i1_full_fp8.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 hidream_i1_full_fp8.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_t2v_14B_fp16.safetensors",
+      "checked": true,
+      "name": "\ud83e\udd17 wan2.1_t2v_14B_fp16.safetensors"
+    },
+    {
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp16.safetensors?download=true",
+      "checked": true,
+      "name": "\ud83e\udd17 wan2.1_i2v_480p_14B_fp16.safetensors"
+    }
+  ],
+  "max_parallel_downloads": 10
+}

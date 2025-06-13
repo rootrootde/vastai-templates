@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox, 
     QSplitter, QGroupBox, QStackedWidget, QListWidgetItem, QMenu, QInputDialog,
-    QProgressDialog
+    QProgressDialog, QComboBox
 )
 from PySide6.QtCore import Qt
 
@@ -119,9 +119,16 @@ class ProvisioningGUI(QMainWindow):
         self.sync_btn.setToolTip("Pull latest presets from GitHub repository")
         self.sync_btn.clicked.connect(self.sync_with_github)
         
-        # Main action buttons
-        self.load_btn = QPushButton("📂 Load Preset")
-        self.load_btn.setToolTip("Load a preset from the GitHub repository")
+        # Preset dropdown
+        self.preset_combo = QComboBox()
+        self.preset_combo.setMinimumWidth(200)
+        self.preset_combo.setToolTip("Select a preset to load")
+        self.preset_combo.addItem("Select preset...")
+        self.preset_combo.currentTextChanged.connect(self.on_preset_selected)
+        
+        # Main action buttons  
+        self.load_btn = QPushButton("📂 Browse")
+        self.load_btn.setToolTip("Browse for preset files")
         self.load_btn.clicked.connect(self.load_preset_from_repo)
         
         self.save_btn = QPushButton("💾 Save Preset")
@@ -145,6 +152,8 @@ class ProvisioningGUI(QMainWindow):
         header_layout.addWidget(self.settings_btn)
         header_layout.addWidget(self.sync_btn)
         header_layout.addSpacing(20)
+        header_layout.addWidget(QLabel("Preset:"))
+        header_layout.addWidget(self.preset_combo)
         header_layout.addWidget(self.load_btn)
         header_layout.addWidget(self.save_btn)
         header_layout.addWidget(self.commit_push_btn)
@@ -252,9 +261,22 @@ class ProvisioningGUI(QMainWindow):
     
     def _load_initial_data(self):
         """Load initial data and update UI"""
+        # Copy default database from app resources if local database doesn't exist
+        if not self.data_manager.database_file.exists():
+            # Try to get default database from fbs resources
+            if self.app_context:
+                try:
+                    resource_db = self.app_context.get_resource('model_database.json')
+                    import shutil
+                    shutil.copy2(resource_db, self.data_manager.database_file)
+                except Exception as e:
+                    print(f"Could not copy default database: {e}")
+        
         self.data_manager.load_database()
         self.category_manager.refresh_ui_from_data()
         self._update_preview()
+        # Update preset dropdown
+        self._update_preset_list()
     
     def _open_search_dialog(self, model_type):
         """Open the model search dialog"""
@@ -446,6 +468,8 @@ class ProvisioningGUI(QMainWindow):
     def _on_settings_changed(self, settings):
         """Handle settings change"""
         self.github_integration.configure(settings)
+        # Update data manager with new GitHub integration (database stays local)
+        self.data_manager.set_github_integration(self.github_integration)
         # Sync with GitHub after settings change
         self.sync_with_github()
     
@@ -464,10 +488,13 @@ class ProvisioningGUI(QMainWindow):
         success, message = self.github_integration.clone_or_pull()
         
         if success:
+            # Update data manager with GitHub integration (database stays local)
+            self.data_manager.set_github_integration(self.github_integration)
+            
             if not silent:
                 QMessageBox.information(
                     self,
-                    "Sync Complete",
+                    "Sync Complete", 
                     message
                 )
             # Refresh the category list if needed
@@ -539,6 +566,7 @@ class ProvisioningGUI(QMainWindow):
         
         if success:
             QMessageBox.information(self, "Success", message)
+            # Update preset dropdown to include the new preset
             self._update_preset_list()
         else:
             QMessageBox.critical(self, "Error", message)
@@ -580,9 +608,60 @@ class ProvisioningGUI(QMainWindow):
             QMessageBox.critical(self, "Error", message)
     
     def _update_preset_list(self):
-        """Update the list of available presets"""
-        # This could be used to update a preset dropdown if we add one
-        pass
+        """Update the preset dropdown with available presets"""
+        # Clear current items except the first one
+        self.preset_combo.blockSignals(True)  # Prevent triggering selection events
+        current_text = self.preset_combo.currentText()
+        self.preset_combo.clear()
+        self.preset_combo.addItem("Select preset...")
+        
+        # Get list of available presets
+        presets = self.data_manager.list_available_presets()
+        
+        if presets:
+            for preset in presets:
+                # Display just the filename without path
+                display_name = Path(preset).name
+                self.preset_combo.addItem(display_name, preset)  # Store full path as data
+        
+        # Restore previous selection if it still exists
+        if current_text and current_text != "Select preset...":
+            index = self.preset_combo.findText(current_text)
+            if index >= 0:
+                self.preset_combo.setCurrentIndex(index)
+        
+        self.preset_combo.blockSignals(False)
+    
+    def on_preset_selected(self, preset_name):
+        """Handle preset selection from dropdown"""
+        if preset_name == "Select preset..." or not preset_name:
+            return
+        
+        # Get the full preset path from combo data
+        current_index = self.preset_combo.currentIndex()
+        if current_index <= 0:
+            return
+            
+        preset_path = self.preset_combo.itemData(current_index)
+        if not preset_path:
+            # Fallback - use the display name as path
+            preset_path = preset_name
+        
+        # Load the selected preset
+        success, message = self.data_manager.load_preset_from_repo(preset_path)
+        
+        if success:
+            # Refresh UI
+            self.category_manager.refresh_ui_from_data()
+            self._update_preview()
+            # Show brief status message
+            self.statusBar().showMessage(f"Loaded preset: {preset_name}", 3000)
+        else:
+            # Reset dropdown to default and show error
+            self.preset_combo.blockSignals(True)
+            self.preset_combo.setCurrentIndex(0)
+            self.preset_combo.blockSignals(False)
+            QMessageBox.critical(self, "Error", f"Failed to load preset: {message}")
     
     def refresh_model_names(self):
         """Refresh model names from CivitAI and Hugging Face"""

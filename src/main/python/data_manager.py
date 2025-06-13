@@ -3,6 +3,7 @@
 Data Management Module
 
 Handles database operations and data persistence for the provisioning GUI.
+Now integrated with GitHub repository for presets storage.
 """
 
 import json
@@ -10,6 +11,8 @@ import os
 import re
 import requests
 import urllib.parse
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 
 def fetch_model_metadata(url):
@@ -142,11 +145,20 @@ def _extract_filename_from_url(url):
 
 
 class DataManager:
-    """Manages data storage, loading, and persistence"""
+    """Manages data storage, loading, and persistence with GitHub repository integration"""
     
-    def __init__(self, database_file='model_database.json'):
-        self.database_file = database_file
+    def __init__(self, app_data_dir=None):
+        # Use app data directory for database
+        if app_data_dir:
+            self.app_data_dir = Path(app_data_dir)
+        else:
+            self.app_data_dir = Path.home() / ".vastai-provisioning"
+        
+        self.app_data_dir.mkdir(exist_ok=True)
+        # Single database location - always in the presets repository when configured
+        self.database_file = self.app_data_dir / "model_database.json"
         self.data = self._get_default_data()
+        self.github_integration = None
     
     def _get_default_data(self):
         """Get the default data structure"""
@@ -169,13 +181,22 @@ class DataManager:
             'max_parallel_downloads': 4
         }
     
+    def set_github_integration(self, github_integration):
+        """Set the GitHub integration instance"""
+        self.github_integration = github_integration
+        # Database always stays local - never in the repository
+    
     def load_database(self):
         """Load the database from JSON file"""
         try:
-            if os.path.exists(self.database_file):
+            loaded_data = None
+            
+            # Load from the single database location
+            if self.database_file and self.database_file.exists():
                 with open(self.database_file, 'r') as f:
                     loaded_data = json.load(f)
-                    
+            
+            if loaded_data:
                 # Merge with existing data structure
                 for key in self.data:
                     if key in loaded_data:
@@ -201,14 +222,19 @@ class DataManager:
                                         converted_items.append({'url': item, 'checked': True, 'name': None})
                                 self.data[key] = converted_items
                 
+                
         except Exception as e:
             print(f"Error loading database: {e}")
     
     def save_database(self):
         """Save the entire database to a JSON file"""
         try:
+            # Ensure parent directory exists
+            self.database_file.parent.mkdir(parents=True, exist_ok=True)
+            
             with open(self.database_file, 'w') as f:
                 json.dump(self.data, f, indent=2)
+                    
         except Exception as e:
             print(f"Error saving database: {e}")
     
@@ -332,3 +358,87 @@ class DataManager:
         # Save the updated database
         self.save_database()
         return refreshed, total_items
+    
+    def list_available_presets(self) -> List[str]:
+        """List all available presets from GitHub repository"""
+        if not self.github_integration:
+            return []
+        return self.github_integration.list_presets()
+    
+    def load_preset_from_repo(self, preset_name: str) -> Tuple[bool, str]:
+        """Load a preset from the GitHub repository"""
+        if not self.github_integration:
+            return False, "GitHub integration not configured"
+        
+        preset_path = self.github_integration.get_preset_path(preset_name)
+        if not preset_path:
+            return False, f"Preset not found: {preset_name}"
+        
+        try:
+            # Import script parser
+            from script_utils import ScriptParser
+            parser = ScriptParser()
+            
+            # Parse the preset file
+            with open(preset_path, 'r') as f:
+                content = f.read()
+            
+            parsed_data = parser.parse_script(content)
+            
+            # Update selections based on preset (don't replace database)
+            # First clear all selections
+            self.clear_all_selections()
+            
+            # Then check items that are in the preset
+            for category, urls in parsed_data.items():
+                if category in self.data and category != 'max_parallel_downloads':
+                    for url in urls:
+                        # Find and check the item
+                        for item in self.data[category]:
+                            if item['url'] == url:
+                                item['checked'] = True
+                                break
+                        else:
+                            # URL not in database, add it
+                            self.add_item(category, url, checked=True)
+                elif category == 'max_parallel_downloads':
+                    self.data['max_parallel_downloads'] = urls
+            
+            # Save the updated database
+            self.save_database()
+            return True, f"Loaded preset: {preset_name}"
+            
+        except Exception as e:
+            return False, f"Error loading preset: {str(e)}"
+    
+    def save_preset_to_repo(self, preset_name: str, commit_message: str = None) -> Tuple[bool, str]:
+        """Save current selections as a preset to the GitHub repository"""
+        if not self.github_integration:
+            return False, "GitHub integration not configured"
+        
+        try:
+            # Import script generator
+            from script_utils import ScriptGenerator
+            generator = ScriptGenerator()
+            
+            # Generate script content from current selections
+            script_content = generator.generate_script(self.data)
+            
+            # Save to repository
+            success, message = self.github_integration.save_preset(preset_name, script_content)
+            if not success:
+                return False, message
+            
+            # Commit and push if requested
+            if commit_message:
+                success, message = self.github_integration.commit_and_push(
+                    commit_message, 
+                    [preset_name]
+                )
+                if not success:
+                    return False, f"Preset saved locally but push failed: {message}"
+            
+            return True, f"Preset saved: {preset_name}"
+            
+        except Exception as e:
+            return False, f"Error saving preset: {str(e)}"
