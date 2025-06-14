@@ -74,7 +74,6 @@ A GUI application (`provisioning_gui.py`) provides an advanced interface for man
 
 #### 📋 **Script-Based Preset System**
 - No separate preset files - use .sh scripts directly as presets
-- **Example presets** included in `/presets/` directory (sdxl-complete-setup.sh, sdxl.sh)
 - Save configurations as .sh files for easy sharing and version control
 - Load any .sh script file to apply its model selection
 
@@ -131,6 +130,13 @@ python provisioning_gui.py
 - **Auto-Save**: Database automatically saves as you make changes
 - **State Synchronization**: UI state is properly synchronized with database before saves
 - **Refresh Model Names**: Batch update all model names with progress tracking
+- **Folder Organization**: Organize models within categories using hierarchical folders
+  - Create folders with the "📁 Create Folder" button or right-click menu
+  - Tri-state checkboxes: folders show ☑️ (all checked), ☐ (none checked), or ☐ (partial)
+  - Drag and drop models between folders (or use right-click → Move to Folder)
+  - Rename or delete folders via right-click menu
+  - Nested folder support for complex organization
+  - Folders are UI-only - generated scripts remain flat arrays for compatibility
 
 ### Generated Script Format:
 
