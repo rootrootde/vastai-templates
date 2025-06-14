@@ -203,6 +203,42 @@ class DataManager:
         self.github_integration = github_integration
         # Database always stays local - never in the repository
 
+    def _validate_and_fix_data(self):
+        """Validate and fix data structure to ensure all items are in correct format"""
+        for key in self.data:
+            if key in ["max_parallel_downloads", "folder_metadata"]:
+                continue
+                
+            if not isinstance(self.data[key], list):
+                # If it's not a list, make it an empty list
+                self.data[key] = []
+                continue
+                
+            # Fix any string items to be proper dictionaries
+            fixed_items = []
+            for i, item in enumerate(self.data[key]):
+                if isinstance(item, str):
+                    # Convert string to proper format
+                    fixed_items.append({
+                        "url": item,
+                        "checked": True,
+                        "name": None,
+                        "folder": ""
+                    })
+                elif isinstance(item, dict):
+                    # Ensure all required fields exist
+                    if "url" not in item:
+                        continue  # Skip invalid items
+                    if "checked" not in item:
+                        item["checked"] = True
+                    if "name" not in item:
+                        item["name"] = None
+                    if "folder" not in item:
+                        item["folder"] = ""
+                    fixed_items.append(item)
+            
+            self.data[key] = fixed_items
+
     def load_database(self):
         """Load the database from JSON file"""
         try:
@@ -237,7 +273,7 @@ class DataManager:
                                 # Skip non-list items for model categories
                                 continue
                                 
-                            if items and isinstance(items[0], str):
+                            if items and len(items) > 0 and isinstance(items[0], str):
                                 # Old format - convert to new with name fetching and folder support
                                 self.data[key] = [
                                     {"url": url, "checked": True, "name": None, "folder": ""}
@@ -248,26 +284,39 @@ class DataManager:
                                 converted_items = []
                                 for item in items:
                                     if isinstance(item, dict):
+                                        # Create a new dict to avoid modifying the original
+                                        new_item = item.copy()
                                         # Add name field if missing
-                                        if "name" not in item:
-                                            item["name"] = None
+                                        if "name" not in new_item:
+                                            new_item["name"] = None
                                         # Add folder field if missing (for folder support)
-                                        if "folder" not in item:
-                                            item["folder"] = ""
-                                        converted_items.append(item)
-                                    else:
+                                        if "folder" not in new_item:
+                                            new_item["folder"] = ""
+                                        converted_items.append(new_item)
+                                    elif isinstance(item, str):
                                         # Legacy string format
                                         converted_items.append(
                                             {"url": item, "checked": True, "name": None, "folder": ""}
                                         )
+                                    else:
+                                        # Skip any other types
+                                        pass
                                 self.data[key] = converted_items
+            
+            # Validate and fix data after loading
+            self._validate_and_fix_data()
 
         except Exception as e:
             logging.error(f"Error loading database: {e}")
+            # Even on error, validate the data structure
+            self._validate_and_fix_data()
 
     def save_database(self):
         """Save the entire database to a JSON file"""
         try:
+            # Validate data before saving
+            self._validate_and_fix_data()
+            
             # Ensure parent directory exists
             self.database_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -283,7 +332,7 @@ class DataManager:
             return False
 
         # Check if item already exists
-        if any(item["url"] == url for item in self.data[category]):
+        if any(isinstance(item, dict) and item.get("url") == url for item in self.data[category]):
             return False
 
         # Fetch model name for display
@@ -300,7 +349,8 @@ class DataManager:
             return False
 
         self.data[category] = [
-            item for item in self.data[category] if item["url"] != url
+            item for item in self.data[category] 
+            if isinstance(item, dict) and item.get("url") != url
         ]
         return True
 
@@ -310,8 +360,20 @@ class DataManager:
             return False
 
         for item in self.data[category]:
-            if item["url"] == url:
+            if isinstance(item, dict) and item.get("url") == url:
                 item["checked"] = checked
+                return True
+
+        return False
+    
+    def update_item_name(self, category, url, name):
+        """Update the name of an item"""
+        if category not in self.data or category == "max_parallel_downloads":
+            return False
+
+        for item in self.data[category]:
+            if isinstance(item, dict) and item.get("url") == url:
+                item["name"] = name
                 return True
 
         return False
@@ -322,15 +384,17 @@ class DataManager:
             return False
 
         for item in self.data[category]:
-            item["checked"] = checked_state
+            if isinstance(item, dict):
+                item["checked"] = checked_state
         return True
 
     def clear_all_selections(self):
         """Uncheck all models in the database"""
         for key in self.data:
-            if key != "max_parallel_downloads":
+            if key != "max_parallel_downloads" and isinstance(self.data[key], list):
                 for item in self.data[key]:
-                    item["checked"] = False
+                    if isinstance(item, dict):
+                        item["checked"] = False
 
     def get_checked_items(self, category):
         """Get all checked items for a category"""
@@ -452,6 +516,9 @@ class DataManager:
             return True, f"Loaded preset: {preset_name}"
 
         except Exception as e:
+            import traceback
+            logging.error(f"Error loading preset: {str(e)}")
+            logging.error(f"Traceback: {traceback.format_exc()}")
             return False, f"Error loading preset: {str(e)}"
 
     def save_preset_to_repo(
@@ -467,6 +534,9 @@ class DataManager:
 
             generator = ScriptGenerator()
 
+            # Ensure database is saved before generating script
+            self.save_database()
+            
             # Generate script content from current selections
             script_content = generator.generate_script(self.data)
 

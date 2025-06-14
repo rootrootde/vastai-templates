@@ -17,18 +17,17 @@ Usage:
 
 Database:
     model_database.json - Persistent global model database
-    presets.json - Saved preset configurations
 """
 
 import sys
 import os
-import subprocess
 import json
+import logging
 from pathlib import Path
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QPushButton, QTextEdit, QLabel, QFileDialog, QMessageBox, 
-    QSplitter, QGroupBox, QStackedWidget, QListWidgetItem, QMenu, QInputDialog,
+    QSplitter, QGroupBox, QStackedWidget, QInputDialog,
     QProgressDialog, QComboBox
 )
 from PySide6.QtCore import Qt
@@ -234,6 +233,9 @@ class ProvisioningGUI(QMainWindow):
             ("🔍 Annotators", "annotator_models"),
             ("🔍 CLIP Vision", "clip_vision_models"),
             ("🔍 Text Encoders", "text_encoder_models"),
+            ("🔍 CLIP", "clip_models"),
+            ("🎨 Style Models", "style_models"),
+            ("🎨 PuLID", "pulid_models"),
         ]
         
         for display_name, key in categories:
@@ -270,7 +272,7 @@ class ProvisioningGUI(QMainWindow):
                     import shutil
                     shutil.copy2(resource_db, self.data_manager.database_file)
                 except Exception as e:
-                    print(f"Could not copy default database: {e}")
+                    logging.warning(f"Could not copy default database: {e}")
         
         self.data_manager.load_database()
         self.category_manager.refresh_ui_from_data()
@@ -349,6 +351,9 @@ class ProvisioningGUI(QMainWindow):
                 # Force sync UI state to database before generating script
                 self.category_manager.sync_ui_to_database()
                 
+                # Force save the database after sync
+                self.data_manager.save_database()
+                
                 script = self.script_generator.generate_script(self.data_manager.data)
                 with open(filename, 'w') as f:
                     f.write(script)
@@ -375,68 +380,6 @@ class ProvisioningGUI(QMainWindow):
             self._update_preview()
             self.data_manager.save_database()
     
-    
-    def upload_to_git(self):
-        """Save and commit all changes to git"""
-        # Check if we're in a git repository
-        try:
-            subprocess.run(['git', 'status'], capture_output=True, check=True)
-        except subprocess.CalledProcessError:
-            QMessageBox.critical(self, "Error", "Not in a git repository!")
-            return
-            
-        # Get commit message
-        commit_message, ok = QInputDialog.getText(
-            self,
-            "Commit Message",
-            "Enter commit message:",
-            text="Update provisioning script via GUI"
-        )
-        
-        if not ok or not commit_message.strip():
-            return
-            
-        try:
-            # Force sync UI state to database before generating script
-            self.category_manager.sync_ui_to_database()
-            
-            # Save the script to default.sh
-            script = self.script_generator.generate_script(self.data_manager.data)
-            with open('default.sh', 'w') as f:
-                f.write(script)
-            os.chmod('default.sh', 0o755)
-            
-            # Git add all changes
-            subprocess.run(['git', 'add', '.'], check=True)
-            
-            # Git commit
-            subprocess.run(['git', 'commit', '-m', commit_message.strip()], check=True)
-            
-            # Git push
-            result = subprocess.run(['git', 'push'], capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                QMessageBox.information(
-                    self, 
-                    "Success", 
-                    "Changes committed and pushed successfully!"
-                )
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Push Failed",
-                    f"Commit successful but push failed:\n{result.stderr}\n\nYou can push manually later."
-                )
-                
-        except subprocess.CalledProcessError as e:
-            QMessageBox.critical(
-                self,
-                "Error",
-                f"Git operation failed: {str(e)}"
-            )
-        except FileNotFoundError as e:
-            QMessageBox.critical(self, "Error", str(e))
-    
     def _load_github_settings(self):
         """Load GitHub settings from configuration"""
         settings_file = Path.home() / ".vastai-provisioning" / "settings.json"
@@ -446,18 +389,15 @@ class ProvisioningGUI(QMainWindow):
                     settings = json.load(f)
                     self.github_integration.configure(settings)
             except Exception as e:
-                print(f"Error loading settings: {e}")
+                logging.error(f"Error loading settings: {e}")
     
     def _check_github_status(self):
         """Check GitHub repository status"""
         if self.github_integration.settings:
             # Try to sync with GitHub on startup
-            QMessageBox.information(
-                self,
-                "GitHub Sync",
-                "Syncing with GitHub repository..."
-            )
             self.sync_with_github(silent=True)
+            # Update preset list after sync
+            self._update_preset_list()
     
     def open_settings(self):
         """Open the settings dialog"""
@@ -561,10 +501,15 @@ class ProvisioningGUI(QMainWindow):
         # Force sync UI state
         self.category_manager.sync_ui_to_database()
         
+        # Force save the database after sync
+        self.data_manager.save_database()
+        
         # Save preset (without immediate commit)
         success, message = self.data_manager.save_preset_to_repo(filename)
         
         if success:
+            # Mark that we just saved this preset to prevent reload
+            self._just_saved_preset = filename
             QMessageBox.information(self, "Success", message)
             # Update preset dropdown to include the new preset
             self._update_preset_list()
@@ -608,21 +553,21 @@ class ProvisioningGUI(QMainWindow):
             QMessageBox.critical(self, "Error", message)
     
     def _update_preset_list(self):
-        """Update the preset dropdown with available presets"""
+        """Update the preset dropdown with available presets from GitHub repo only"""
         # Clear current items except the first one
         self.preset_combo.blockSignals(True)  # Prevent triggering selection events
         current_text = self.preset_combo.currentText()
         self.preset_combo.clear()
         self.preset_combo.addItem("Select preset...")
         
-        # Get list of available presets
+        # Get filtered preset list from data manager (excludes system files)
         presets = self.data_manager.list_available_presets()
         
         if presets:
-            for preset in presets:
-                # Display just the filename without path
-                display_name = Path(preset).name
-                self.preset_combo.addItem(display_name, preset)  # Store full path as data
+            # Sort by filename and add to combo
+            for preset_path in sorted(presets):
+                filename = Path(preset_path).name
+                self.preset_combo.addItem(filename, preset_path)
         
         # Restore previous selection if it still exists
         if current_text and current_text != "Select preset...":
@@ -646,6 +591,11 @@ class ProvisioningGUI(QMainWindow):
         if not preset_path:
             # Fallback - use the display name as path
             preset_path = preset_name
+        
+        # Don't reload if we just saved this preset
+        if hasattr(self, '_just_saved_preset') and self._just_saved_preset == preset_path:
+            self._just_saved_preset = None
+            return
         
         # Load the selected preset
         success, message = self.data_manager.load_preset_from_repo(preset_path)

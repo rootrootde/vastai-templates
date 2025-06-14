@@ -6,7 +6,6 @@ Handles script generation and parsing functionality.
 """
 
 import re
-import os
 from pathlib import Path
 from data_manager import fetch_model_metadata
 
@@ -23,7 +22,6 @@ class ScriptGenerator:
                 Path(__file__).parent / 'template.sh',
                 Path(__file__).parent.parent / 'resources' / 'base' / 'template.sh',
                 Path.cwd() / 'template.sh',
-                Path('/Users/chris/Git/vastai-templates/template.sh')
             ]
             
             for path in possible_paths:
@@ -52,14 +50,20 @@ class ScriptGenerator:
         def format_array(items):
             if not items:
                 return ""
-            # Filter to only checked items
-            checked_items = [item for item in items if item.get('checked', True)]
+            # Filter to only checked items - ensure they are dicts and explicitly checked
+            checked_items = []
+            for item in items:
+                if isinstance(item, dict) and item.get('checked', False):
+                    checked_items.append(item)
+            
             if not checked_items:
                 return ""
             
             lines = []
             for item in checked_items:
-                url = item['url']
+                url = item.get('url', '')
+                if not url:
+                    continue
                 name = item.get('name')
                 if name and name != url:
                     # Add model name as comment
@@ -85,6 +89,9 @@ class ScriptGenerator:
             '{clip_vision_models}': format_array(data.get('clip_vision_models', [])),
             '{text_encoder_models}': format_array(data.get('text_encoder_models', [])),
             '{diffusion_models}': format_array(data.get('diffusion_models', [])),
+            '{clip_models}': format_array(data.get('clip_models', [])),
+            '{style_models}': format_array(data.get('style_models', [])),
+            '{pulid_models}': format_array(data.get('pulid_models', [])),
             '{max_parallel_downloads}': str(data.get('max_parallel_downloads', 4))
         }
         
@@ -116,7 +123,10 @@ class ScriptParser:
             'annotator_models': r'ANNOTATOR_MODELS=\((.*?)\)',
             'clip_vision_models': r'CLIP_VISION_MODELS=\((.*?)\)',
             'text_encoder_models': r'TEXT_ENCODER_MODELS=\((.*?)\)',
-            'diffusion_models': r'DIFFUSION_MODELS=\((.*?)\)'
+            'diffusion_models': r'DIFFUSION_MODELS=\((.*?)\)',
+            'clip_models': r'CLIP_MODELS=\((.*?)\)',
+            'style_models': r'STYLE_MODELS=\((.*?)\)',
+            'pulid_models': r'PULID_MODELS=\((.*?)\)'
         }
     
     def parse_script(self, content, data_manager):
@@ -127,48 +137,64 @@ class ScriptParser:
             content: Script content to parse
             data_manager: DataManager instance to update
         """
-        # Don't clear existing data - just uncheck everything first
-        data_manager.clear_all_selections()
-        
-        # Extract items from each array and mark them as checked
-        for key, pattern in self.patterns.items():
-            urls = self._extract_urls_from_array(content, pattern)
+        try:
+            # Don't clear existing data - just uncheck everything first
+            data_manager.clear_all_selections()
             
-            for url, comment in urls:
-                # Check if URL exists in database
-                existing_items = data_manager.get_all_items(key)
-                existing_item = None
-                for item in existing_items:
-                    if item['url'] == url:
-                        existing_item = item
-                        break
-                
-                if existing_item:
-                    # Mark existing item as checked
-                    data_manager.update_item_checked_state(key, url, True)
-                    # Update name if we have a comment and no name stored
-                    if comment and not existing_item.get('name'):
-                        existing_item['name'] = comment
-                else:
-                    # Add new item to database
-                    data_manager.add_item(key, url, checked=True)
-                    # If we have a comment, update the name
-                    if comment:
-                        items = data_manager.get_all_items(key)
-                        for item in items:
-                            if item['url'] == url:
-                                item['name'] = comment
-                                break
-        
-        # Parse MAX_PARALLEL_DOWNLOADS setting
-        max_parallel_match = re.search(r'MAX_PARALLEL_DOWNLOADS=(\d+)', content)
-        if max_parallel_match:
-            try:
-                max_parallel_value = int(max_parallel_match.group(1))
-                data_manager.update_max_parallel_downloads(max_parallel_value)
-            except ValueError:
-                # If parsing fails, keep default value
-                pass
+            # Extract items from each array and mark them as checked
+            for key, pattern in self.patterns.items():
+                try:
+                    urls = self._extract_urls_from_array(content, pattern)
+                    
+                    for url, comment in urls:
+                        try:
+                            # Check if URL exists in database
+                            existing_items = data_manager.get_all_items(key)
+                            existing_item = None
+                            
+                            for item in existing_items:
+                                if isinstance(item, dict) and item.get('url') == url:
+                                    existing_item = item
+                                    break
+                            
+                            if existing_item:
+                                # Mark existing item as checked
+                                success = data_manager.update_item_checked_state(key, url, True)
+                                # Update name if we have a comment and no name stored
+                                if comment and isinstance(existing_item, dict) and not existing_item.get('name'):
+                                    # Update through data_manager method
+                                    data_manager.update_item_name(key, url, comment)
+                            else:
+                                # Add new item to database
+                                data_manager.add_item(key, url, checked=True)
+                                # If we have a comment, update the name
+                                if comment:
+                                    data_manager.update_item_name(key, url, comment)
+                                    
+                        except Exception as e:
+                            import logging
+                            logging.error(f"Error processing URL {url} in category {key}: {e}")
+                            raise
+                            
+                except Exception as e:
+                    import logging
+                    logging.error(f"Error extracting URLs for category {key}: {e}")
+                    raise
+            
+            # Parse MAX_PARALLEL_DOWNLOADS setting
+            max_parallel_match = re.search(r'MAX_PARALLEL_DOWNLOADS=(\d+)', content)
+            if max_parallel_match:
+                try:
+                    max_parallel_value = int(max_parallel_match.group(1))
+                    data_manager.update_max_parallel_downloads(max_parallel_value)
+                except ValueError:
+                    # If parsing fails, keep default value
+                    pass
+                    
+        except Exception as e:
+            import logging
+            logging.error(f"Error in parse_script: {e}", exc_info=True)
+            raise
     
     def _extract_urls_from_array(self, content, pattern):
         """Extract URLs and comments from a script array"""
